@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  db:
+    image: mariadb:10.6
+    container_name: mariadb
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wpuser
+      MYSQL_PASSWORD: wppass
+    volumes:
+      - db_data:/var/lib/mysql
+
+  wordpress:
+    build:
+      context: ./docker/wordpress
+    container_name: wordpress
+    restart: always
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: wpuser
+      WORDPRESS_DB_PASSWORD: wppass
+      WORDPRESS_DB_NAME: wordpress
+    volumes:
+      - wordpress_data:/var/www/html
+    depends_on:
+      - db
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    restart: always
+    ports:
+      - "8081:80"
+    volumes:
+      - ./docker/wordpress/nginx.conf:/etc/nginx/conf.d/default.conf
+      - wordpress_data:/var/www/html
+    depends_on:
+      - wordpress
+
+  prestadb:
+    image: mariadb:10.6
+    container_name: prestadb
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: prestashop
+      MYSQL_USER: psuser
+      MYSQL_PASSWORD: pspass
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - prestadb_data:/var/lib/mysql
+
+  prestashop:
+    build:
+      context: ./docker/prestashop
+    container_name: prestashop
+    depends_on:
+      - prestadb
+    environment:
+      DB_SERVER: prestadb
+      DB_NAME: prestashop
+      DB_USER: psuser
+      DB_PASSWORD: pspass
+      PS_INSTALL_AUTO: 1
+      PS_DOMAIN: localhost:8082
+      PS_FOLDER_ADMIN: admin
+    ports:
+      - "8082:80"
+
+volumes:
+  prestadb_data:
+  db_data:
+  wordpress_data:
