@@ -83,3 +83,20 @@ resource "aws_instance" "cms" {
   }
 }
 
+resource "aws_instance" "k3s" {
+  ami                    = var.ami_id
+  instance_type          = "t2.micro"
+  subnet_id              = var.public_subnet_id
+  vpc_security_group_ids = [aws_security_group.instance.id]
+  key_name               = var.key_name
+
+  user_data = templatefile("${path.module}/cloud-init-k3s.sh.tpl", {
+    developer_username   = var.developer_username
+    developer_password   = var.developer_password
+  })
+
+  tags = {
+    Name = "${var.project}-k3s-instance"
+  }
+}
+

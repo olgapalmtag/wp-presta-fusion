@@ -1,3 +1,8 @@
+variable "project" {
+  description = "Project name used for tagging resources"
+  type        = string
+}
+
 variable "end_user_username" {
   type        = string
   description = "Username for the CMS end user"
