@@ -66,16 +66,16 @@ resource "aws_instance" "cms" {
   key_name               = var.key_name
 
   user_data = templatefile("${path.module}/cloud-init.sh", {
-    end_user_username    = var.end_user_username
-    end_user_password    = var.end_user_password
-    developer_username   = var.developer_username
-    developer_password   = var.developer_password
-    ops_username         = var.ops_username
-    ops_password         = var.ops_password
-    sre_username         = var.sre_username
-    sre_password         = var.sre_password
-    instructor_username  = var.instructor_username
-    instructor_password  = var.instructor_password
+    end_user_username   = var.end_user_username
+    end_user_password   = var.end_user_password
+    developer_username  = var.developer_username
+    developer_password  = var.developer_password
+    ops_username        = var.ops_username
+    ops_password        = var.ops_password
+    sre_username        = var.sre_username
+    sre_password        = var.sre_password
+    instructor_username = var.instructor_username
+    instructor_password = var.instructor_password
   })
 
   tags = {
@@ -91,8 +91,8 @@ resource "aws_instance" "k3s" {
   key_name               = var.key_name
 
   user_data = templatefile("${path.module}/cloud-init-k3s.sh.tpl", {
-    developer_username   = var.developer_username
-    developer_password   = var.developer_password
+    developer_username = var.developer_username
+    developer_password = var.developer_password
   })
 
   tags = {

@@ -51,5 +51,5 @@ variable "instructor_password" {
 variable "aws_region" {
   description = "AWS region to deploy resources"
   type        = string
-  default     = "eu-west-3"  # Paris (Free Tier eligible)
+  default     = "eu-west-3" # Paris (Free Tier eligible)
 }
