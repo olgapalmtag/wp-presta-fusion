@@ -1,42 +1,57 @@
-name: Terraform Plan
+name: Terraform CI/CD
 
 on:
   push:
     branches:
       - main
   pull_request:
+    branches:
+      - main
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./terrafrom/environments/dev
+
+env:
+  AWS_REGION: eu-west-3
+  TF_IN_AUTOMATION: true
+
+  # Terraform variables passed securely via GitHub Secrets
+  TF_VAR_end_user_username:      ${{ secrets.CMS_USER_USERNAME }}
+  TF_VAR_end_user_password:      ${{ secrets.CMS_USER_PASSWORD }}
+  TF_VAR_developer_username:     ${{ secrets.DEV_USERNAME }}
+  TF_VAR_developer_password:     ${{ secrets.DEV_PASSWORD }}
+  TF_VAR_ops_username:           ${{ secrets.OPS_USERNAME }}
+  TF_VAR_ops_password:           ${{ secrets.OPS_PASSWORD }}
+  TF_VAR_sre_username:           ${{ secrets.SRE_USERNAME }}
+  TF_VAR_sre_password:           ${{ secrets.SRE_PASSWORD }}
+  TF_VAR_instructor_username:    ${{ secrets.INSTRUCTOR_USERNAME }}
+  TF_VAR_instructor_password:    ${{ secrets.INSTRUCTOR_PASSWORD }}
 
 jobs:
   terraform:
-    name: Terraform Format, Validate, and Plan
+    name: Terraform validate & plan
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: ./terrafrom/environments/dev
-
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Set up Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: 1.7.5
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.6
 
-    - name: Terraform Format
-      run: terraform fmt -check -recursive
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
 
-    - name: Terraform Init
-      run: terraform init
+      - name: Terraform Init
+        run: terraform init
 
-    - name: Terraform Validate
-      run: terraform validate
+      - name: Terraform Validate
+        run: terraform validate
 
-    - name: Terraform Plan
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_REGION: ${{ secrets.AWS_REGION }}
-      run: terraform plan -var-file=../../terraform/terraform.tfvars
+      - name: Terraform Plan
+        run: terraform plan
 
