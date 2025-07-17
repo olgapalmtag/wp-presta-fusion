@@ -1,3 +1,13 @@
+module "tls_certificate" {
+  source      = "../../modules/tls_certificate"
+  common_name = "drachenbyte.ddns-ip.net"
+  dns_names   = [
+    "wpf.drachenbyte.ddns-ip.net",
+    "prestaf.drachenbyte.ddns-ip.net"
+  ]
+}
+
+
 # VPC Modul
 module "vpc" {
   source              = "../../modules/vpc"

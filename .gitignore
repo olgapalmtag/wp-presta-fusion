@@ -1,4 +1,5 @@
 terraform.tfvars
+my_terraform.env
 *.tfstate
 *.tfstate.backup
 .terraform/

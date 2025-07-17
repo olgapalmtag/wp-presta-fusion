@@ -1,0 +1,103 @@
+name: Terraform Apply & TLS Setup
+
+on:
+  workflow_dispatch:  # Nur manuell starten im GitHub UI
+
+env:
+  AWS_REGION: eu-west-3
+  TF_IN_AUTOMATION: true
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  TF_VAR_end_user_username:   ${{ secrets.CMS_USER_USERNAME }}
+  TF_VAR_end_user_password:   ${{ secrets.CMS_USER_PASSWORD }}
+  TF_VAR_developer_username:  ${{ secrets.DEV_USERNAME }}
+  TF_VAR_developer_password:  ${{ secrets.DEV_PASSWORD }}
+  TF_VAR_ops_username:        ${{ secrets.OPS_USERNAME }}
+  TF_VAR_ops_password:        ${{ secrets.OPS_PASSWORD }}
+  TF_VAR_sre_username:        ${{ secrets.SRE_USERNAME }}
+  TF_VAR_sre_password:        ${{ secrets.SRE_PASSWORD }}
+  TF_VAR_instructor_username: ${{ secrets.INSTRUCTOR_USERNAME }}
+  TF_VAR_instructor_password: ${{ secrets.INSTRUCTOR_PASSWORD }}
+
+jobs:
+  terraform-apply:
+    name: Apply Infrastructure & Configure TLS
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./terraform/environments/dev
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.6
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+
+      - name: Get EC2 IP
+        id: get-ip
+        run: echo "EC2_IP=$(terraform output -raw ec2_instance_public_ip)" >> $GITHUB_ENV
+
+      - name: Upload TLS certificates to EC2 & configure NGINX
+        run: |
+          echo "${{ secrets.EC2_PRIVATE_KEY }}" > key.pem
+          chmod 600 key.pem
+
+          echo "Copying certs to EC2 at $EC2_IP..."
+          scp -o StrictHostKeyChecking=no -i key.pem cert.pem ubuntu@$EC2_IP:/tmp/
+          scp -o StrictHostKeyChecking=no -i key.pem tls.key ubuntu@$EC2_IP:/tmp/
+
+          echo "Configuring NGINX..."
+          ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@$EC2_IP <<'EOF'
+            sudo mkdir -p /etc/nginx/ssl
+            sudo mv /tmp/cert.pem /etc/nginx/ssl/
+            sudo mv /tmp/tls.key /etc/nginx/ssl/
+
+            sudo bash -c 'cat > /etc/nginx/sites-available/default <<EOL
+server {
+    listen 443 ssl;
+    server_name wpf.drachenbyte.ddns-ip.net;
+
+    ssl_certificate /etc/nginx/ssl/cert.pem;
+    ssl_certificate_key /etc/nginx/ssl/tls.key;
+
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+    }
+}
+
+server {
+    listen 443 ssl;
+    server_name prestaf.drachenbyte.ddns-ip.net;
+
+    ssl_certificate /etc/nginx/ssl/cert.pem;
+    ssl_certificate_key /etc/nginx/ssl/tls.key;
+
+    location / {
+        proxy_pass http://localhost:4000;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+    }
+}
+
+server {
+    listen 80;
+    server_name wpf.drachenbyte.ddns-ip.net prestaf.drachenbyte.ddns-ip.net;
+    return 301 https://\$host\$request_uri;
+}
+EOL'
+
+            sudo systemctl reload nginx
+EOF
+
