@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: prestashop-ingress
+  namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  tls:
+    - hosts:
+        - prestaf.drachenbyte.ddns-ip.net
+      secretName: tls-secret
+  rules:
+    - host: prestaf.drachenbyte.ddns-ip.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: prestashop-service
+                port:
+                  number: 80
+

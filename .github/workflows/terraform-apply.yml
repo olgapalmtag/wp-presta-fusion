@@ -117,11 +117,53 @@ jobs:
           echo "DB_USER=$TF_VAR_db_username" >> $GITHUB_ENV
           echo "DB_PASS=$TF_VAR_db_password" >> $GITHUB_ENV
 
-      - name: Erstelle K8s Secret für MariaDB
-
+      - name: Create TLS Secret in K3s via SSH
         run: |
-         envsubst < ./k8s/wordpress/mariadb-secret.yaml.template \
-           > ./k8s/wordpress/mariadb-secret.yaml
+          echo "Creating Kubernetes TLS Secret in K3s cluster..."
 
-         kubectl apply \
-           -f ./k8s/wordpress/mariadb-secret.yaml
+          ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@$EC2_IP <<'EOF'
+            kubectl get secret tls-secret >/dev/null 2>&1 || \
+            kubectl create secret tls tls-secret \
+              --cert=/etc/nginx/ssl/cert.pem \
+              --key=/etc/nginx/ssl/tls.key \
+              --namespace default
+          EOF
+
+      - name: Deploy WordPress & PrestaShop via K3s on EC2
+        run: |
+          echo "Preparing WordPress & PrestaShop deployment..."
+
+          # Terraform Output -> GitHub ENV
+          echo "DB_ENDPOINT=$(terraform output -raw db_endpoint)" >> $GITHUB_ENV
+          echo "DB_NAME=$(terraform output -raw db_name)" >> $GITHUB_ENV
+
+          # Deployment-Dateien nach EC2 kopieren
+          scp -o StrictHostKeyChecking=no -i key.pem -r ./k8s/wordpress \
+            ubuntu@$EC2_IP:/home/ubuntu/
+          scp -o StrictHostKeyChecking=no -i key.pem -r ./k8s/prestashop \
+            ubuntu@$EC2_IP:/home/ubuntu/
+
+          # Remote SSH + K8s Apply
+          ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@$EC2_IP <<'EOF'
+            echo "Setzen der Umgebungsvariablen..."
+            export DB_ENDPOINT=${{ env.DB_ENDPOINT }}
+            export DB_NAME=${{ env.DB_NAME }}
+            export DB_USER=${{ env.TF_VAR_db_username }}
+            export DB_PASS=${{ env.TF_VAR_db_password }}
+
+            echo "WordPress wird deployed..."
+            envsubst < /home/ubuntu/wordpress/mariadb-secret.yaml.template \
+              > /home/ubuntu/wordpress/mariadb-secret.yaml
+            kubectl apply -f /home/ubuntu/wordpress/mariadb-secret.yaml
+            kubectl apply -f /home/ubuntu/wordpress/deployment.yaml
+            kubectl apply -f /home/ubuntu/wordpress/service.yaml
+            kubectl apply -f /home/ubuntu/wordpress/ingress.yaml
+
+            echo "PrestaShop wird deployed..."
+            envsubst < /home/ubuntu/prestashop/mariadb-secret.yaml.template \
+              > /home/ubuntu/prestashop/mariadb-secret.yaml
+            kubectl apply -f /home/ubuntu/prestashop/mariadb-secret.yaml
+            kubectl apply -f /home/ubuntu/prestashop/deployment.yaml
+            kubectl apply -f /home/ubuntu/prestashop/service.yaml
+            kubectl apply -f /home/ubuntu/prestashop/ingress.yaml
+          EOF

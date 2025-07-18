@@ -1,0 +1,34 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: wp-presta-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  tls:
+    - hosts:
+        - wpf.drachenbyte.ddns-ip.net
+        - prestaf.drachenbyte.ddns-ip.net
+      secretName: tls-secret
+  rules:
+    - host: wpf.drachenbyte.ddns-ip.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: wordpress-service
+                port:
+                  number: 80
+    - host: prestaf.drachenbyte.ddns-ip.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: prestashop-service
+                port:
+                  number: 80
+
