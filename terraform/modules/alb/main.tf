@@ -1,9 +1,9 @@
 resource "aws_lb" "main" {
-  name               = "${var.project}-alb"
-  internal           = false
-  load_balancer_type = "application"
-  subnets            = var.public_subnet_ids
-  security_groups    = [var.alb_security_group_id]
+  name                       = "${var.project}-alb"
+  internal                   = false
+  load_balancer_type         = "application"
+  subnets                    = var.public_subnet_ids
+  security_groups            = [var.alb_security_group_id]
   enable_deletion_protection = false
 
   tags = {

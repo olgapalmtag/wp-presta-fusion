@@ -54,7 +54,7 @@ module "alb" {
 module "mariadb" {
   source            = "../../modules/rds-mariadb"
   project           = "wp-presta-fusion"
-  subnet_ids = module.vpc.private_subnet_ids
+  subnet_ids        = module.vpc.private_subnet_ids
   security_group_id = module.vpc.default_sg_id
   db_name           = "cmsdb"
   db_username       = var.db_username
