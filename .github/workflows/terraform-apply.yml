@@ -2,7 +2,7 @@
 name: Terraform Apply & NGINX TLS Config
 
 on:
-  workflow_dispatch: true
+  workflow_dispatch:
 
 jobs:
   terraform-apply:
