@@ -13,8 +13,10 @@ module "vpc" {
   source              = "../../modules/vpc"
   project             = "wp-presta-fusion"
   vpc_cidr            = "10.0.0.0/16"
-  public_subnet_cidr  = "10.0.1.0/24"
-  private_subnet_cidr = "10.0.2.0/24"
+  public_subnet_cidr_a  = var.public_subnet_cidr_a
+  public_subnet_cidr_b  = var.public_subnet_cidr_b
+  private_subnet_cidr_a  = var.private_subnet_cidr_a
+  private_subnet_cidr_b  = var.private_subnet_cidr_b
   az_a                = "eu-west-3a"
   az_b                = "eu-west-3b"
 }
