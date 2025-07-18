@@ -20,10 +20,9 @@ variable "db_password" {
 }
 
 variable "subnet_ids" {
-  description = "Subnets für die DB Subnet Group"
+  description = "List of private subnet IDs for RDS"
   type        = list(string)
 }
-
 variable "security_group_id" {
   description = "Security Group ID für die DB"
   type        = string

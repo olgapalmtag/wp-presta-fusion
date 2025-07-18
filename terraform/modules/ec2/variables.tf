@@ -68,13 +68,13 @@ variable "public_subnet_id" {
   description = "ID of the public subnet for the EC2 instance"
 }
 
-variable "ami_id" {
-  type        = string
-  description = "AMI ID for the EC2 instance (e.g., Ubuntu 20.04)"
-}
-
 variable "key_name" {
   type        = string
   description = "Name of the existing EC2 key pair for SSH access"
+}
+
+variable "ami_id" {
+  description = "AMI ID for EC2 instance"
+  type        = string
 }
 

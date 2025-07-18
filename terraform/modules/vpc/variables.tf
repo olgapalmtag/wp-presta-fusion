@@ -18,8 +18,11 @@ variable "private_subnet_cidr" {
   type        = string
 }
 
-variable "az" {
-  description = "Availability zone for subnets"
-  type        = string
+variable "az_a" {
+  default = "eu-west-3a"
+}
+
+variable "az_b" {
+  default = "eu-west-3b"
 }
 

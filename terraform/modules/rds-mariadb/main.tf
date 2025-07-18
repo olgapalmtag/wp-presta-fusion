@@ -6,7 +6,6 @@ resource "aws_db_subnet_group" "mariadb_subnet_group" {
     Name = "mariadb-subnet-group"
   }
 }
-
 resource "aws_db_instance" "mariadb" {
   identifier             = "${var.project}-mariadb"
   allocated_storage      = 20
