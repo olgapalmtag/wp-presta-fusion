@@ -10,15 +10,15 @@ module "tls_certificate" {
 
 # VPC Modul
 module "vpc" {
-  source              = "../../modules/vpc"
-  project             = "wp-presta-fusion"
-  vpc_cidr            = "10.0.0.0/16"
+  source                = "../../modules/vpc"
+  project               = "wp-presta-fusion"
+  vpc_cidr              = "10.0.0.0/16"
   public_subnet_cidr_a  = var.public_subnet_cidr_a
   public_subnet_cidr_b  = var.public_subnet_cidr_b
-  private_subnet_cidr_a  = var.private_subnet_cidr_a
-  private_subnet_cidr_b  = var.private_subnet_cidr_b
-  az_a                = "eu-west-3a"
-  az_b                = "eu-west-3b"
+  private_subnet_cidr_a = var.private_subnet_cidr_a
+  private_subnet_cidr_b = var.private_subnet_cidr_b
+  az_a                  = "eu-west-3a"
+  az_b                  = "eu-west-3b"
 }
 
 # EC2 Modul
