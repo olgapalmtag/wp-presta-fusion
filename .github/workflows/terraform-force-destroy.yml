@@ -8,7 +8,7 @@ on:
 jobs:
   terraform-force-destroy:
     runs-on: ubuntu-latest
-    timeout-minutes: 7
+    timeout-minutes: 15
 
     defaults:
       run:
@@ -20,10 +20,11 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: eu-west-3
       TF_AMI_ID: ${{ secrets.TF_AMI_ID }}
-      TF_INSTANCE_TYPE: ${{ secrets.TF_INSTANCE_TYPE }}
+      TF_VAR_instance_type: t2.micro
       TF_KEY_NAME: ${{ secrets.TF_KEY_NAME }}
       TF_DB_PASSWORD: ${{ secrets.TF_DB_PASSWORD }}
-      TF_LOG: INFO
+      TF_LOG: DEBUG
+      TF_IN_AUTOMATION: true
 
     steps:
       - name: Checkout Repository

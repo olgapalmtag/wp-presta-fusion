@@ -1,3 +1,7 @@
+provider "aws" {
+  region = "eu-west-3"
+}
+
 module "tls_certificate" {
   source      = "../../modules/tls_certificate"
   common_name = "drachenbyte.ddns-ip.net"
@@ -29,7 +33,6 @@ module "ec2" {
   public_subnet_id = module.vpc.public_subnet_ids[0]
   ami_id           = "ami-0c1d144c8fdd8d690" # Ubuntu 20.04 LTS in eu-west-3
   key_name         = "your-aws-keypair-name"
-
   end_user_username   = var.end_user_username
   end_user_password   = var.end_user_password
   developer_username  = var.developer_username

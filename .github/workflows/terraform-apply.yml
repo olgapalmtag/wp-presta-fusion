@@ -36,7 +36,7 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
-
+      
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
@@ -47,6 +47,13 @@ jobs:
 
       - name: Terraform Validate
         run: terraform validate
+
+      - name: Taint EC2 Instances to force recreation
+        run: |
+          terraform taint module.ec2.aws_instance.cms \
+          || echo "cms not found or already tainted"
+          terraform taint module.ec2.aws_instance.k3s \
+          || echo "k3s not found or already tainted"
 
       - name: Terraform Plan
         run: terraform plan
