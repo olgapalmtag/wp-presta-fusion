@@ -53,6 +53,11 @@ jobs:
       - name: Terraform Apply
         run: terraform apply -auto-approve
 
+      - name: Wait for EC2 and RDS readiness
+        run: |
+          echo "Warte 60 Sekunden, bis EC2 und RDS bereit sind..."
+          sleep 120
+
       - name: Save EC2 IP to file
         id: get-ip
         run: |
