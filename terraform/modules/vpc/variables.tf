@@ -3,18 +3,23 @@ variable "project" {
   type        = string
 }
 
-public_subnet_cidr_a  = "10.0.1.0/24"
-public_subnet_cidr_b  = "10.0.2.0/24"
-private_subnet_cidr_a = "10.0.3.0/24"
-private_subnet_cidr_b = "10.0.4.0/24"
-
-variable "public_subnet_cidr" {
-  description = "CIDR block for the public subnet"
+variable "public_subnet_cidr_a" {
+  description = "CIDR block for public subnet A"
   type        = string
 }
 
-variable "private_subnet_cidr" {
-  description = "CIDR block for the private subnet"
+variable "public_subnet_cidr_b" {
+  description = "CIDR block for public subnet B"
+  type        = string
+}
+
+variable "private_subnet_cidr_a" {
+  description = "CIDR block for private subnet A"
+  type        = string
+}
+
+variable "private_subnet_cidr_b" {
+  description = "CIDR block for private subnet B"
   type        = string
 }
 
@@ -26,3 +31,7 @@ variable "az_b" {
   default = "eu-west-3b"
 }
 
+variable "vpc_cidr" {
+  description = "CIDR block for the VPC"
+  type        = string
+}
