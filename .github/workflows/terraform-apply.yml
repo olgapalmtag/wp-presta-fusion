@@ -1,35 +1,39 @@
-name: Terraform Apply & TLS Setup
+---
+name: Terraform Apply & NGINX TLS Config
 
 on:
-  workflow_dispatch:  # Nur manuell starten im GitHub UI
-
-env:
-  AWS_REGION: eu-west-3
-  TF_IN_AUTOMATION: true
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  TF_VAR_end_user_username:   ${{ secrets.CMS_USER_USERNAME }}
-  TF_VAR_end_user_password:   ${{ secrets.CMS_USER_PASSWORD }}
-  TF_VAR_developer_username:  ${{ secrets.DEV_USERNAME }}
-  TF_VAR_developer_password:  ${{ secrets.DEV_PASSWORD }}
-  TF_VAR_ops_username:        ${{ secrets.OPS_USERNAME }}
-  TF_VAR_ops_password:        ${{ secrets.OPS_PASSWORD }}
-  TF_VAR_sre_username:        ${{ secrets.SRE_USERNAME }}
-  TF_VAR_sre_password:        ${{ secrets.SRE_PASSWORD }}
-  TF_VAR_instructor_username: ${{ secrets.INSTRUCTOR_USERNAME }}
-  TF_VAR_instructor_password: ${{ secrets.INSTRUCTOR_PASSWORD }}
+  workflow_dispatch: true
 
 jobs:
   terraform-apply:
-    name: Apply Infrastructure & Configure TLS
+    name: Terraform Apply and TLS NGINX Setup
     runs-on: ubuntu-latest
+
+    env:
+      AWS_REGION: eu-west-3
+      TF_IN_AUTOMATION: true
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      TF_VAR_end_user_username: ${{ secrets.CMS_USER_USERNAME }}
+      TF_VAR_end_user_password: ${{ secrets.CMS_USER_PASSWORD }}
+      TF_VAR_developer_username: ${{ secrets.DEV_USERNAME }}
+      TF_VAR_developer_password: ${{ secrets.DEV_PASSWORD }}
+      TF_VAR_ops_username: ${{ secrets.OPS_USERNAME }}
+      TF_VAR_ops_password: ${{ secrets.OPS_PASSWORD }}
+      TF_VAR_sre_username: ${{ secrets.SRE_USERNAME }}
+      TF_VAR_sre_password: ${{ secrets.SRE_PASSWORD }}
+      TF_VAR_instructor_username: ${{ secrets.INSTRUCTOR_USERNAME }}
+      TF_VAR_instructor_password: ${{ secrets.INSTRUCTOR_PASSWORD }}
+      TF_VAR_db_username: ${{ secrets.DEV_USERNAME }}
+      TF_VAR_db_password: ${{ secrets.DEV_PASSWORD }}
+
     defaults:
       run:
         shell: bash
         working-directory: ./terraform/environments/dev
 
     steps:
-      - name: Checkout repository
+      - name: Checkout Code
         uses: actions/checkout@v3
 
       - name: Setup Terraform
@@ -40,64 +44,84 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        run: terraform plan
+
       - name: Terraform Apply
         run: terraform apply -auto-approve
 
-      - name: Get EC2 IP
+      - name: Save EC2 IP to file
         id: get-ip
-        run: echo "EC2_IP=$(terraform output -raw ec2_instance_public_ip)" >> $GITHUB_ENV
-
-      - name: Upload TLS certificates to EC2 & configure NGINX
         run: |
-          echo "${{ secrets.EC2_PRIVATE_KEY }}" > key.pem
-          chmod 600 key.pem
+          echo "EC2_IP=$(terraform output -raw ec2_public_ip)" >> $GITHUB_ENV
 
-          echo "Copying certs to EC2 at $EC2_IP..."
-          scp -o StrictHostKeyChecking=no -i key.pem cert.pem ubuntu@$EC2_IP:/tmp/
-          scp -o StrictHostKeyChecking=no -i key.pem tls.key ubuntu@$EC2_IP:/tmp/
+      - name: Create TLS Certificate Files
+        run: |
+          echo "${{ secrets.TLS_CERT }}" > cert.pem
+          echo "${{ secrets.TLS_KEY }}" > tls.key
 
-          echo "Configuring NGINX..."
-          ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@$EC2_IP <<'EOF'
+      - name: Upload TLS to EC2 & Configure NGINX
+        run: |
+          echo "Uploading certs and configuring NGINX on EC2..."
+          scp -o StrictHostKeyChecking=no \
+              -i key.pem \
+              cert.pem tls.key \
+              ubuntu:$EC2_IP:/tmp/
+
+          ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@$EC2_IP <<EOF
             sudo mkdir -p /etc/nginx/ssl
             sudo mv /tmp/cert.pem /etc/nginx/ssl/
             sudo mv /tmp/tls.key /etc/nginx/ssl/
 
-            sudo bash -c 'cat > /etc/nginx/sites-available/default <<EOL
-server {
-    listen 443 ssl;
-    server_name wpf.drachenbyte.ddns-ip.net;
+            sudo tee /etc/nginx/sites-available/default > /dev/null <<'EOL'
+              server {
+                listen 443 ssl;
+                server_name wpf.drachenbyte.ddns-ip.net;
 
-    ssl_certificate /etc/nginx/ssl/cert.pem;
-    ssl_certificate_key /etc/nginx/ssl/tls.key;
+                ssl_certificate /etc/nginx/ssl/cert.pem;
+                ssl_certificate_key /etc/nginx/ssl/tls.key;
 
-    location / {
-        proxy_pass http://localhost:3000;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-    }
-}
+                location / {
+                  proxy_pass http://localhost:3000;
+                  proxy_set_header Host \$host;
+                  proxy_set_header X-Real-IP \$remote_addr;
+                }
+              }
 
-server {
-    listen 443 ssl;
-    server_name prestaf.drachenbyte.ddns-ip.net;
+              server {
+                listen 443 ssl;
+                server_name prestaf.drachenbyte.ddns-ip.net;
 
-    ssl_certificate /etc/nginx/ssl/cert.pem;
-    ssl_certificate_key /etc/nginx/ssl/tls.key;
+                ssl_certificate /etc/nginx/ssl/cert.pem;
+                ssl_certificate_key /etc/nginx/ssl/tls.key;
 
-    location / {
-        proxy_pass http://localhost:4000;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-    }
-}
+                location / {
+                  proxy_pass http://localhost:4000;
+                  proxy_set_header Host \$host;
+                  proxy_set_header X-Real-IP \$remote_addr;
+                }
+              }
+            EOL
 
-server {
-    listen 80;
-    server_name wpf.drachenbyte.ddns-ip.net prestaf.drachenbyte.ddns-ip.net;
-    return 301 https://\$host\$request_uri;
-}
-EOL'
+            sudo systemctl restart nginx
+          EOF
 
-            sudo systemctl reload nginx
-EOF
+      - name: Terraform Output
+        id: tfoutput
+        run: |
+          echo "DB_ENDPOINT=$(terraform output -raw db_endpoint)" >> $GITHUB_ENV
+          echo "DB_NAME=$(terraform output -raw db_name)" >> $GITHUB_ENV
+          echo "DB_USER=$TF_VAR_db_username" >> $GITHUB_ENV
+          echo "DB_PASS=$TF_VAR_db_password" >> $GITHUB_ENV
 
+      - name: Erstelle K8s Secret für MariaDB
+
+        run: |
+         envsubst < ./k8s/wordpress/mariadb-secret.yaml.template \
+           > ./k8s/wordpress/mariadb-secret.yaml
+
+         kubectl apply \
+           -f ./k8s/wordpress/mariadb-secret.yaml

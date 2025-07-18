@@ -30,6 +30,8 @@ env:
   TF_VAR_sre_password:           ${{ secrets.SRE_PASSWORD }}
   TF_VAR_instructor_username:    ${{ secrets.INSTRUCTOR_USERNAME }}
   TF_VAR_instructor_password:    ${{ secrets.INSTRUCTOR_PASSWORD }}
+  TF_VAR_db_username: ${{ secrets.DEV_USERNAME }}
+  TF_VAR_db_password: ${{ secrets.DEV_PASSWORD }}
 
 jobs:
   terraform:

@@ -4,18 +4,21 @@ resource "tls_private_key" "main" {
 }
 
 resource "tls_self_signed_cert" "main" {
-  key_algorithm   = "RSA"
-  private_key_pem = tls_private_key.main.private_key_pem
+  private_key_pem        = tls_private_key.main.private_key_pem
+  validity_period_hours  = 8760
+  early_renewal_hours    = 720
 
-  subjects {
-    common_name  = var.common_name
+  subject {
+    common_name  = "drachenbyte.ddns-ip.net"
+    organization = "WpPrestaFusion"
   }
 
-  dns_names       = var.dns_names
-  validity_period_hours = 8760
-  is_ca_certificate     = false
+  allowed_uses = [
+    "key_encipherment",
+    "digital_signature",
+    "server_auth",
+  ]
 }
-
 output "tls_cert" {
   value     = tls_self_signed_cert.main.cert_pem
   sensitive = true
