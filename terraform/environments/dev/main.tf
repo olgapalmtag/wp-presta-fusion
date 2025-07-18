@@ -1,7 +1,7 @@
 module "tls_certificate" {
   source      = "../../modules/tls_certificate"
   common_name = "drachenbyte.ddns-ip.net"
-  dns_names   = [
+  dns_names = [
     "wpf.drachenbyte.ddns-ip.net",
     "prestaf.drachenbyte.ddns-ip.net"
   ]
@@ -54,7 +54,7 @@ module "mariadb" {
   source            = "../../modules/rds-mariadb"
   project           = "wp-presta-fusion"
   subnet_ids        = [module.vpc.private_subnet_id]
-  security_group_id  = module.vpc.default_sg_id 
+  security_group_id = module.vpc.default_sg_id
   db_name           = "cmsdb"
   db_username       = var.db_username
   db_password       = var.db_password

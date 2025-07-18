@@ -4,9 +4,9 @@ resource "tls_private_key" "main" {
 }
 
 resource "tls_self_signed_cert" "main" {
-  private_key_pem        = tls_private_key.main.private_key_pem
-  validity_period_hours  = 8760
-  early_renewal_hours    = 720
+  private_key_pem       = tls_private_key.main.private_key_pem
+  validity_period_hours = 8760
+  early_renewal_hours   = 720
 
   subject {
     common_name  = "drachenbyte.ddns-ip.net"
