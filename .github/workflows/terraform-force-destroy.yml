@@ -6,8 +6,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  terraform-destroy:
+  terraform-force-destroy:
     runs-on: ubuntu-latest
+    timeout-minutes: 7
 
     defaults:
       run:
@@ -18,6 +19,11 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: eu-west-3
+      TF_AMI_ID: ${{ secrets.TF_AMI_ID }}
+      TF_INSTANCE_TYPE: ${{ secrets.TF_INSTANCE_TYPE }}
+      TF_KEY_NAME: ${{ secrets.TF_KEY_NAME }}
+      TF_DB_PASSWORD: ${{ secrets.TF_DB_PASSWORD }}
+      TF_LOG: INFO
 
     steps:
       - name: Checkout Repository
@@ -31,10 +37,25 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
-      - name: Remove Resources from State (if exist)
+      - name: Remove critical resources from state
         run: |
-          echo "Delete all resources from state"
-          RESOURCES=(
+          RESOURCES_CRITICAL=(
+            "module.mariadb.aws_db_instance.mariadb"
+            "module.mariadb.aws_db_subnet_group.mariadb_subnet_group"
+            "module.vpc.aws_nat_gateway.nat"
+            "module.vpc.aws_eip.nat_eip"
+            "module.alb.aws_lb.main"
+            "module.alb.aws_lb_target_group.cms"
+            "module.alb.aws_lb_listener.http"
+          )
+
+          for res in "${RESOURCES_CRITICAL[@]}"; do
+            terraform state rm "$res" || echo "$res not found in state"
+          done
+
+      - name: Remove remaining dependencies from state
+        run: |
+          RESOURCES_REMAINING=(
             "module.vpc.aws_subnet.public_a"
             "module.vpc.aws_subnet.public_b"
             "module.vpc.aws_subnet.private_a"
@@ -47,26 +68,20 @@ jobs:
             "module.vpc.aws_route_table.private"
             "module.vpc.aws_internet_gateway.igw"
             "module.vpc.aws_vpc.main"
-            "module.alb.aws_lb_target_group.cms"
-            "module.alb.aws_lb.main"
-            "module.alb.aws_lb_listener.http"
             "module.ec2.aws_instance.cms"
             "module.ec2.aws_instance.k3s"
             "module.ec2.aws_security_group.alb"
             "module.ec2.aws_security_group.instance"
-            "module.mariadb.aws_db_instance.mariadb"
-            "module.mariadb.aws_db_subnet_group.mariadb_subnet_group"
           )
 
-          for res in "${RESOURCES[@]}"; do
-            terraform state rm "$res" && echo "Entfernt: $res" \
-            || echo "$res nicht im State (ignoriert)"
+          for res in "${RESOURCES_REMAINING[@]}"; do
+            terraform state rm "$res" || echo "$res not found in state"
           done
 
       - name: Terraform Destroy
         run: |
           terraform destroy -auto-approve \
-            -var="ami_id=${{ secrets.TF_AMI_ID }}" \
-            -var="instance_type=${{ secrets.TF_INSTANCE_TYPE }}" \
-            -var="key_name=${{ secrets.TF_KEY_NAME }}" \
-            -var="db_password=${{ secrets.TF_DB_PASSWORD }}"
+            -var="ami_id=${TF_AMI_ID}" \
+            -var="instance_type=${TF_INSTANCE_TYPE}" \
+            -var="key_name=${TF_KEY_NAME}" \
+            -var="db_password=${TF_DB_PASSWORD}"
