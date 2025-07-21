@@ -14,9 +14,9 @@ sleep 30
 
 # 2. ALB Komponenten
 echo "Lösche ALB Listener, Target Group und Load Balancer..."
-TG_ARN=$(aws elbv2 describe-target-groups --names wp-presta-fusion-tg --query "TargetGroups[0].TargetGroupArn" --output text)
-LB_ARN=$(aws elbv2 describe-load-balancers --names wp-presta-fusion-alb --query "LoadBalancers[0].LoadBalancerArn" --output text)
-LISTENER_ARN=$(aws elbv2 describe-listeners --load-balancer-arn $LB_ARN --query "Listeners[0].ListenerArn" --output text)
+TG_ARN=$(aws elbv2 describe-target-groups --names wp-presta-fusion-tg --query "TargetGroups[0].TargetGroupArn" --output text) || true
+LB_ARN=$(aws elbv2 describe-load-balancers --names wp-presta-fusion-alb --query "LoadBalancers[0].LoadBalancerArn" --output text) || true
+LISTENER_ARN=$(aws elbv2 describe-listeners --load-balancer-arn $LB_ARN --query "Listeners[0].ListenerArn" --output text) || true
 
 aws elbv2 delete-listener --listener-arn $LISTENER_ARN || true
 aws elbv2 delete-target-group --target-group-arn $TG_ARN || true
@@ -34,11 +34,19 @@ done
 # 4. RDS
 echo "Lösche RDS MariaDB-Instance..."
 aws rds delete-db-instance --db-instance-identifier wp-presta-fusion-mariadb --skip-final-snapshot || true
-sleep 90
+sleep 120
 
 echo "Lösche RDS Subnet Group..."
 aws rds delete-db-subnet-group --db-subnet-group-name mariadb-subnet-group || true
 
+# 1. EC2-Instanzen löschen
+echo "Lösche EC2-Instanzen..."
+aws ec2 terminate-instances --instance-ids $(aws ec2 describe-instances \
+  --filters "Name=tag:Name,Values=wp-presta-fusion-*" \
+  --query "Reservations[].Instances[].InstanceId" --output text) || true
+
+sleep 30
+12
 # 5. IAM
 echo "Lösche IAM-Rollen, Policies und Profile..."
 aws iam remove-role-from-instance-profile --instance-profile-name ec2-s3-backup-profile --role-name ec2-s3-backup-role || true
