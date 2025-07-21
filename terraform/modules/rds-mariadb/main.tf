@@ -19,7 +19,11 @@ resource "aws_db_instance" "mariadb" {
   port                   = 3306
   vpc_security_group_ids = [var.security_group_id]
   db_subnet_group_name   = aws_db_subnet_group.mariadb_subnet_group.name
-  skip_final_snapshot    = true
+  backup_retention_period = 7
+  backup_window           = "02:00-03:00"
+
+  skip_final_snapshot = false
+  final_snapshot_identifier = "mariadb-final-snapshot"
   publicly_accessible    = false
   multi_az               = false
 

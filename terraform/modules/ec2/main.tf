@@ -61,6 +61,7 @@ resource "aws_security_group" "instance" {
 resource "aws_instance" "cms" {
   ami                    = var.ami_id
   instance_type          = "t2.micro"
+  iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
   subnet_id              = var.public_subnet_id
   vpc_security_group_ids = [aws_security_group.instance.id]
   key_name               = var.key_name
@@ -86,6 +87,7 @@ resource "aws_instance" "cms" {
 resource "aws_instance" "k3s" {
   ami                    = var.ami_id
   instance_type          = "t2.micro"
+  iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
   subnet_id              = var.public_subnet_id
   vpc_security_group_ids = [aws_security_group.instance.id]
   key_name               = var.key_name

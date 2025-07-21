@@ -36,7 +36,7 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
-      
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
@@ -46,7 +46,7 @@ jobs:
         run: terraform init
 
       - name: Terraform Validate
-        run: terraform validate
+        run: terrafrom validate
 
       - name: Taint EC2 Instances to force recreation
         run: |
@@ -179,4 +179,28 @@ jobs:
             kubectl apply -f /home/ubuntu/prestashop/deployment.yaml
             kubectl apply -f /home/ubuntu/prestashop/service.yaml
             kubectl apply -f /home/ubuntu/prestashop/ingress.yaml
+          EOF
+
+      - name: Upload and install Monitoring on EC2
+        run: |
+          echo "Uploading install-monitoring.sh to EC2 and executing it..."
+          scp -o StrictHostKeyChecking=no -i key.pem install-monitoring.sh \
+            ubuntu@$EC2_IP:/home/ubuntu/
+
+           ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@$EC2_IP <<'EOF'
+             chmod +x /home/ubuntu/install-monitoring.sh
+             bash /home/ubuntu/install-monitoring.sh
+           EOF
+
+      - name: MariaDB Backup to S3
+        run: |
+          ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@$EC2_IP <<EOF
+            set -e
+            TIMESTAMP=\$(date +%F-%H%M)
+            mysqldump -h ${{ env.DB_ENDPOINT }} \
+            -u ${{ env.TF_VAR_db_username }} \
+            -p "${{ env.TF_VAR_db_password }}" \
+            ${{ env.DB_NAME }} > \$BACKUP_FILE
+            aws s3 cp \$BACKUP_FILE s3://wp-presta-backups/db-backups/ \
+            --region eu-west-3
           EOF

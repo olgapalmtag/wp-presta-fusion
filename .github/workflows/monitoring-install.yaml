@@ -1,0 +1,38 @@
+name: Install Monitoring Stack (Prometheus + Grafana)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  install-monitoring:
+    runs-on: ubuntu-latest
+
+    env:
+      EC2_IP: ${{ secrets.EC2_IP }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Create SSH key file
+        run: |
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > key.pem
+          chmod 600 key.pem
+
+      - name: Install Helm and Deploy Monitoring on EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@$EC2_IP <<'EOF'
+            echo "Installing Helm..."
+            curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+            echo "Adding Helm repo..."
+            helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+            helm repo update
+
+            echo "Deploying Prometheus + Grafana..."
+            helm install prometheus prometheus-community/kube-prometheus-stack \
+              --namespace monitoring --create-namespace
+
+            echo "Done."
+          EOF
+

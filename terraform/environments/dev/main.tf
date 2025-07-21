@@ -66,3 +66,8 @@ module "mariadb" {
   db_password       = var.db_password
 }
 
+module "s3_backup" {
+  source      = "../../modules/s3-backup"
+  bucket_name = "wp-presta-backups"
+}
+
