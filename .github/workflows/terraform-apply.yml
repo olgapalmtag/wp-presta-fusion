@@ -88,7 +88,7 @@ jobs:
           echo "Installing and configuring NGINX on EC2..."
 
           ssh  -o StrictHostKeyChecking=no -i key.pem \
-          $TF_VAR_dev_username@$EC2_IP <<'EOF'
+          $TF_VAR_dev_username@$EC2_IP <<EOF
             # Check if nginx is installed
             if ! command -v nginx > /dev/null; then
               echo "NGINX not found. Installing..."
