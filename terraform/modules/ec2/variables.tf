@@ -73,8 +73,3 @@ variable "key_name" {
   description = "Name of the existing EC2 key pair for SSH access"
 }
 
-variable "ami_id" {
-  description = "AMI ID for EC2 instance"
-  type        = string
-}
-
