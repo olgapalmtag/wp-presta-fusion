@@ -48,6 +48,9 @@ jobs:
             "module.alb.aws_lb.main"
             "module.alb.aws_lb_target_group.cms"
             "module.alb.aws_lb_listener.http"
+            "module.s3_backup.aws_s3_bucket.backup"
+            "module.ec2.aws_iam_role.ec2_s3_backup_role"
+            "module.ec2.aws_iam_policy.s3_backup_policy"
           )
 
           for res in "${RESOURCES_CRITICAL[@]}"; do
@@ -83,6 +86,6 @@ jobs:
         run: |
           terraform destroy -auto-approve \
             -var="ami_id=${TF_AMI_ID}" \
-            -var="instance_type=${TF_INSTANCE_TYPE}" \
+            -var="instance_type=${TF_VAR_instance_type}" \
             -var="key_name=${TF_KEY_NAME}" \
             -var="db_password=${TF_DB_PASSWORD}"
