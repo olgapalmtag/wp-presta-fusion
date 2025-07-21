@@ -1,7 +1,3 @@
-provider "aws" {
-  region = "eu-west-3"
-}
-
 module "tls_certificate" {
   source      = "../../modules/tls_certificate"
   common_name = "drachenbyte.ddns-ip.net"

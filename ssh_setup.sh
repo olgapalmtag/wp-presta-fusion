@@ -1,25 +1,25 @@
 #!/bin/bash
 
-echo "Starte SSH-Agent..."
+echo "Starting SSH Agent..."
 eval "$(ssh-agent -s)"
 
 KEY_PATH="$HOME/.ssh/wp-presta-key"
 
-echo "Füge SSH-Key hinzu: $KEY_PATH"
+echo "Adding SSH key: $KEY_PATH"
 if [ -f "$KEY_PATH" ]; then
   ssh-add "$KEY_PATH"
 else
-  echo "SSH-Key nicht gefunden unter $KEY_PATH"
+  echo "SSH key not found at $KEY_PATH"
   exit 1
 fi
 
-echo "Teste Verbindung zu GitHub..."
-ssh -T git@github.com
+echo "Testing connection to GitHub..."
+ssh -o StrictHostKeyChecking=no -T git@github.com
 
-echo "Setze Git-Konfiguration..."
+echo "Setting Git config..."
 git config --global user.name "olgapalmtag"
 git config --global user.email "palmtag73@freenet.de"
 
-echo "Führe git push origin main aus..."
-#git push origin main
+echo "Running git push..."
+git push origin main
 
