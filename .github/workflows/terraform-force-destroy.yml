@@ -92,4 +92,4 @@ jobs:
             -var="instance_type=${TF_VAR_instance_type}" \
             -var="key_name=${TF_KEY_NAME}" \
             -var="db_password=${TF_DB_PASSWORD}" \
-            -var="db_name"=${TF_DB_NAME}"
+            -var="db_name=${TF_DB_NAME}"
