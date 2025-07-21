@@ -19,10 +19,11 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: eu-west-3
-      TF_AMI_ID: ${{ secrets.TF_AMI_ID }}
+      TF_AMI_ID: ${{ secrets.AMI_ID }}
       TF_VAR_instance_type: t2.micro
-      TF_KEY_NAME: ${{ secrets.TF_KEY_NAME }}
-      TF_DB_PASSWORD: ${{ secrets.TF_DB_PASSWORD }}
+      TF_KEY_NAME: ${{ secrets.SSH_PRIVATE_KEY }}
+      TF_DB_PASSWORD: ${{ secrets.DEV_PASSWORD }}
+      TF_DB_NAME: ${{ secrets.DEV_NAME }}
       TF_LOG: INFO
       TF_IN_AUTOMATION: true
 
@@ -90,4 +91,5 @@ jobs:
             -var="ami_id=${TF_AMI_ID}" \
             -var="instance_type=${TF_VAR_instance_type}" \
             -var="key_name=${TF_KEY_NAME}" \
-            -var="db_password=${TF_DB_PASSWORD}"
+            -var="db_password=${TF_DB_PASSWORD}" \
+            -var="db_name"=${TF_DB_NAME}"
