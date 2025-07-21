@@ -8,7 +8,7 @@ on:
 jobs:
   terraform-force-destroy:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     defaults:
       run:
@@ -23,7 +23,7 @@ jobs:
       TF_VAR_instance_type: t2.micro
       TF_KEY_NAME: ${{ secrets.TF_KEY_NAME }}
       TF_DB_PASSWORD: ${{ secrets.TF_DB_PASSWORD }}
-      TF_LOG: DEBUG
+      TF_LOG: INFO
       TF_IN_AUTOMATION: true
 
     steps:
@@ -38,28 +38,33 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
-      - name: Remove critical resources from state
+      - name: Remove Critical Resources from State (DB, ALB, EC2, IAM, S3)
         run: |
-          RESOURCES_CRITICAL=(
+          CRITICAL_RESOURCES=(
             "module.mariadb.aws_db_instance.mariadb"
             "module.mariadb.aws_db_subnet_group.mariadb_subnet_group"
-            "module.vpc.aws_nat_gateway.nat"
-            "module.vpc.aws_eip.nat_eip"
-            "module.alb.aws_lb.main"
-            "module.alb.aws_lb_target_group.cms"
             "module.alb.aws_lb_listener.http"
-            "module.s3_backup.aws_s3_bucket.backup"
+            "module.alb.aws_lb_target_group.cms"
+            "module.alb.aws_lb.main"
+            "module.ec2.aws_instance.cms"
+            "module.ec2.aws_instance.k3s"
+            "module.ec2.aws_security_group.alb"
+            "module.ec2.aws_security_group.instance"
             "module.ec2.aws_iam_role.ec2_s3_backup_role"
             "module.ec2.aws_iam_policy.s3_backup_policy"
+            "module.ec2.aws_iam_role_policy_attachment.ec2_s3_backup_attach"
+            "module.s3_backup.aws_s3_bucket.backup"
           )
 
-          for res in "${RESOURCES_CRITICAL[@]}"; do
+          for res in "${CRITICAL_RESOURCES[@]}"; do
             terraform state rm "$res" || echo "$res not found in state"
           done
 
-      - name: Remove remaining dependencies from state
+      - name: Remove VPC Networking Resources
         run: |
-          RESOURCES_REMAINING=(
+          NETWORK_RESOURCES=(
+            "module.vpc.aws_nat_gateway.nat"
+            "module.vpc.aws_eip.nat_eip"
             "module.vpc.aws_subnet.public_a"
             "module.vpc.aws_subnet.public_b"
             "module.vpc.aws_subnet.private_a"
@@ -72,13 +77,9 @@ jobs:
             "module.vpc.aws_route_table.private"
             "module.vpc.aws_internet_gateway.igw"
             "module.vpc.aws_vpc.main"
-            "module.ec2.aws_instance.cms"
-            "module.ec2.aws_instance.k3s"
-            "module.ec2.aws_security_group.alb"
-            "module.ec2.aws_security_group.instance"
           )
 
-          for res in "${RESOURCES_REMAINING[@]}"; do
+          for res in "${NETWORK_RESOURCES[@]}"; do
             terraform state rm "$res" || echo "$res not found in state"
           done
 
