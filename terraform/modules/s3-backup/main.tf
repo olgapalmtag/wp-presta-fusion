@@ -3,8 +3,8 @@
 #################################################################
 
 resource "aws_s3_bucket" "backup" {
-  bucket        = var.bucket_name          # e.g. wp-presta-backups
-  force_destroy = true                     # allow terraform destroy
+  bucket        = var.bucket_name # e.g. wp-presta-backups
+  force_destroy = true            # allow terraform destroy
   tags = {
     Name    = var.bucket_name
     Project = "wp-presta-fusion"
@@ -22,10 +22,10 @@ resource "aws_s3_bucket_lifecycle_configuration" "delete_old_backups" {
     id     = "delete-db-backups-after-7-days"
     status = "Enabled"
 
-    filter { prefix = "db-backups/" }      # only our SQL dumps
+    filter { prefix = "db-backups/" } # only our SQL dumps
 
     expiration {
-      days = 7                             # ← retention period
+      days = 7 # ← retention period
     }
   }
 }

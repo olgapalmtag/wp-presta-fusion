@@ -27,12 +27,12 @@ module "vpc" {
 
 # EC2 Modul
 module "ec2" {
-  source           = "../../modules/ec2"
-  project          = "wp-presta-fusion"
-  vpc_id           = module.vpc.vpc_id
-  public_subnet_id = module.vpc.public_subnet_ids[0]
-  ami_id           = "ami-0c1d144c8fdd8d690" # Ubuntu 20.04 LTS in eu-west-3
-  key_name         = "your-aws-keypair-name"
+  source              = "../../modules/ec2"
+  project             = "wp-presta-fusion"
+  vpc_id              = module.vpc.vpc_id
+  public_subnet_id    = module.vpc.public_subnet_ids[0]
+  ami_id              = "ami-0c1d144c8fdd8d690" # Ubuntu 20.04 LTS in eu-west-3
+  key_name            = "your-aws-keypair-name"
   end_user_username   = var.end_user_username
   end_user_password   = var.end_user_password
   developer_username  = var.developer_username
