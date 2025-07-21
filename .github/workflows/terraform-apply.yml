@@ -68,12 +68,14 @@ jobs:
       - name: Save EC2 IP to file
         id: get-ip
         run: |
-          echo "EC2_IP=$(terraform output -raw ec2_public_ip)" >> $GITHUB_ENV
+          echo "EC2_IP=$(terraform output -raw ec2_instance_public_ip)" \
+          >> $GITHUB_ENV
 
-      - name: Create TLS Certificate Files
+      - name: Extract TLS Outputs to Files
         run: |
-          echo "${{ secrets.TLS_CERT }}" > cert.pem
-          echo "${{ secrets.TLS_KEY }}" > tls.key
+          cd terraform/environments/dev
+          terraform output -raw tls_cert > cert.pem
+          terraform output -raw tls_key > tls.key
 
       - name: Upload TLS to EC2 & Configure NGINX
         run: |

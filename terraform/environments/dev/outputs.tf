@@ -14,3 +14,13 @@ output "s3_backup_bucket" {
   value = module.s3_backup.bucket_name
 }
 
+output "tls_cert" {
+  value     = module.tls_certificate.tls_cert
+  sensitive = true
+}
+
+output "tls_key" {
+  value     = module.tls_certificate.tls_key
+  sensitive = true
+}
+
