@@ -4,7 +4,7 @@
 
 resource "aws_s3_bucket" "backup" {
   bucket        = var.backup_bucket_name # e.g. wp-presta-backups
-  force_destroy = true            # allow terraform destroy
+  force_destroy = true                   # allow terraform destroy
   tags = {
     Name    = var.backup_bucket_name
     Project = "wp-presta-fusion"
