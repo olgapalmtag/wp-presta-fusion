@@ -46,7 +46,7 @@ jobs:
         run: terraform init
 
       - name: Terraform Validate
-        run: terrafrom validate
+        run: terraform validate
 
       - name: Taint EC2 Instances to force recreation
         run: |
