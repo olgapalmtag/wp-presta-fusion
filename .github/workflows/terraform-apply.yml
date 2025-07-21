@@ -73,7 +73,6 @@ jobs:
 
       - name: Extract TLS Outputs to Files
         run: |
-          cd terraform/environments/dev
           terraform output -raw tls_cert > cert.pem
           terraform output -raw tls_key > tls.key
 

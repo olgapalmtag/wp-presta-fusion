@@ -46,7 +46,7 @@ aws ec2 terminate-instances --instance-ids $(aws ec2 describe-instances \
   --query "Reservations[].Instances[].InstanceId" --output text) || true
 
 sleep 30
-12
+
 # 5. IAM
 echo "Lösche IAM-Rollen, Policies und Profile..."
 aws iam remove-role-from-instance-profile --instance-profile-name ec2-s3-backup-profile --role-name ec2-s3-backup-role || true
