@@ -27,7 +27,7 @@ module "ec2" {
   project             = "wp-presta-fusion"
   vpc_id              = module.vpc.vpc_id
   public_subnet_id    = module.vpc.public_subnet_ids[0]
-  ami_id              = var.ami_id
+  ami_id              = "ami-0309b5fc16a20deb4"
   key_name            = "wp-presta-key"
   end_user_username   = var.end_user_username
   end_user_password   = var.end_user_password
