@@ -64,6 +64,6 @@ module "mariadb" {
 
 module "s3_backup" {
   source      = "../../modules/s3-backup"
-  bucket_name = "wp-presta-backups"
+  backup_bucket_name  = "wp-presta-backups"
 }
 
