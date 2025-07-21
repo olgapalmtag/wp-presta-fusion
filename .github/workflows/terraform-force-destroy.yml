@@ -53,6 +53,7 @@ jobs:
             "module.ec2.aws_iam_role.ec2_s3_backup_role"
             "module.ec2.aws_iam_policy.s3_backup_policy"
             "module.ec2.aws_iam_role_policy_attachment.ec2_s3_backup_attach"
+            "module.ec2.aws_iam_instance_profile.ec2_profile"
             "module.s3_backup.aws_s3_bucket.backup"
           )
 
