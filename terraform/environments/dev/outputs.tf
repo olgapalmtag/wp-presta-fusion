@@ -10,3 +10,7 @@ output "mariadb_port" {
   value = module.mariadb.db_instance_port
 }
 
+output "s3_backup_bucket" {
+  value = module.s3_backup.bucket_name
+}
+
