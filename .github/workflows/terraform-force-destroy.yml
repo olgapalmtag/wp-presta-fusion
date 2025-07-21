@@ -26,6 +26,16 @@ jobs:
       TF_DB_USERNAME: ${{ secrets.DEV_USERNAME }}
       TF_LOG: INFO
       TF_IN_AUTOMATION: true
+      TF_VAR_end_user_username: ${{ secrets.END_USER_USERNAME }}
+      TF_VAR_end_user_password: ${{ secrets.END_USER_PASSWORD }}
+      TF_VAR_developer_username: ${{ secrets.DEV_USERNAME }}
+      TF_VAR_developer_password: ${{ secrets.DEV_PASSWORD }}
+      TF_VAR_ops_username: ${{ secrets.OPS_USERNAME }}
+      TF_VAR_ops_password: ${{ secrets.OPS_PASSWORD }}
+      TF_VAR_sre_username: ${{ secrets.SRE_USERNAME }}
+      TF_VAR_sre_password: ${{ secrets.SRE_PASSWORD }}
+      TF_VAR_instructor_username: ${{ secrets.INSTRUCTOR_USERNAME }}
+      TF_VAR_instructor_password: ${{ secrets.INSTRUCTOR_PASSWORD }}
 
     steps:
       - name: Checkout Repository
@@ -92,4 +102,15 @@ jobs:
             -var="instance_type=${TF_VAR_instance_type}" \
             -var="key_name=${TF_KEY_NAME}" \
             -var="db_password=${TF_DB_PASSWORD}" \
-            -var="db_username=${TF_DB_USERNAME}"
+            -var="db_username=${TF_DB_USERNAME}" \
+            -var="end_user_username=${TF_VAR_end_user_username}" \
+            -var="end_user_password=${TF_VAR_end_user_password}" \
+            -var="developer_username=${TF_VAR_developer_username}" \
+            -var="developer_password=${TF_VAR_developer_password}" \
+            -var="ops_username=${TF_VAR_ops_username}" \
+            -var="ops_password=${TF_VAR_ops_password}" \
+            -var="sre_username=${TF_VAR_sre_username}" \
+            -var="sre_password=${TF_VAR_sre_password}" \
+            -var="instructor_username=${TF_VAR_instructor_username}" \
+            -var="instructor_password=${TF_VAR_instructor_password}"
+            
