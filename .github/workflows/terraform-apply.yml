@@ -16,7 +16,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       TF_VAR_end_user_username: ${{ secrets.CMS_USER_USERNAME }}
       TF_VAR_end_user_password: ${{ secrets.CMS_USER_PASSWORD }}
-      TF_VAR_developer_username: ${{ secrets.DEV_USERNAME }}
+      TF_VAR_dev_username: ${{ secrets.DEV_USERNAME }}
       TF_VAR_developer_password: ${{ secrets.DEV_PASSWORD }}
       TF_VAR_ops_username: ${{ secrets.OPS_USERNAME }}
       TF_VAR_ops_password: ${{ secrets.OPS_PASSWORD }}
@@ -86,7 +86,7 @@ jobs:
       - name: Installing nginx if needed
         run: |
           echo "Installing and configuring NGINX on EC2..."
-
+          echo "Connecting to $TF_VAR_dev_username@$EC2_IP"
           ssh  -o StrictHostKeyChecking=no -i key.pem \
           $TF_VAR_dev_username@$EC2_IP <<EOF
             # Check if nginx is installed
