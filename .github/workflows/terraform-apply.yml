@@ -16,7 +16,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       TF_VAR_end_user_username: ${{ secrets.CMS_USER_USERNAME }}
       TF_VAR_end_user_password: ${{ secrets.CMS_USER_PASSWORD }}
-      TF_VAR_dev_username: ${{ secrets.DEV_USERNAME }}
+      TF_VAR_developer_username: ${{ secrets.DEV_USERNAME }}
       TF_VAR_developer_password: ${{ secrets.DEV_PASSWORD }}
       TF_VAR_ops_username: ${{ secrets.OPS_USERNAME }}
       TF_VAR_ops_password: ${{ secrets.OPS_PASSWORD }}
@@ -88,7 +88,7 @@ jobs:
           echo "Installing and configuring NGINX on EC2..."
           echo "Connecting to $TF_VAR_dev_username@$EC2_IP"
           ssh  -o StrictHostKeyChecking=no -i key.pem \
-          $TF_VAR_dev_username@$EC2_IP <<EOF
+          $TF_VAR_developer_username@$EC2_IP <<EOF
             # Check if nginx is installed
             if ! command -v nginx > /dev/null; then
               echo "NGINX not found. Installing..."
@@ -107,15 +107,15 @@ jobs:
           scp -o StrictHostKeyChecking=no \
               -i key.pem \
               cert.pem tls.key \
-              $TF_VAR_dev_username:$EC2_IP:/tmp/
+              $TF_VAR_developer_username:$EC2_IP:/tmp/
 
           ssh -o StrictHostKeyChecking=no -i key.pem \
-          $TF_VAR_dev_username@$EC2_IP <<EOF
+          $TF_VAR_developer_username@$EC2_IP <<EOF
             sudo mkdir -p /etc/nginx/ssl
             sudo mv /tmp/cert.pem /etc/nginx/ssl/
             sudo mv /tmp/tls.key /etc/nginx/ssl/
 
-            sudo tee /etc/nginx/sites-available/default > /dev/null <<'EOL'
+            sudo tee /etc/nginx/sites-available/default > /dev/null <<EOF
               server {
                 listen 443 ssl;
                 server_name wpf.drachenbyte.ddns-ip.net;
@@ -143,7 +143,7 @@ jobs:
                   proxy_set_header X-Real-IP \$remote_addr;
                 }
               }
-            EOL
+            EOF
 
             sudo systemctl restart nginx
           EOF
@@ -161,7 +161,7 @@ jobs:
           echo "Creating Kubernetes TLS Secret in K3s cluster..."
 
           ssh -o StrictHostKeyChecking=no -i key.pem \
-          $TF_VAR_dev_username@$EC2_IP <<'EOF'
+          $TF_VAR_developer_username@$EC2_IP <<EOF
             kubectl get secret tls-secret >/dev/null 2>&1 || \
             kubectl create secret tls tls-secret \
               --cert=/etc/nginx/ssl/cert.pem \
@@ -185,7 +185,7 @@ jobs:
 
           # Remote SSH + K8s Apply
           ssh -o StrictHostKeyChecking=no -i key.pem \
-          ubuntu@$EC2_IP <<'EOF'
+          $TF_VAR_developer_username <<EOF
             echo "Setzen der Umgebungsvariablen..."
             export DB_ENDPOINT=${{ env.DB_ENDPOINT }}
             export DB_NAME=${{ env.DB_NAME }}
@@ -213,7 +213,7 @@ jobs:
         run: |
           echo "Uploading install-monitoring.sh to EC2 and executing it..."
           scp -o StrictHostKeyChecking=no -i key.pem install-monitoring.sh \
-          $TF_VAR_dev_username@$EC2_IP:/home/ubuntu/
+          $TF_VAR_developer_username@$EC2_IP:/home/ubuntu/
           ssh -o StrictHostKeyChecking=no -i key.pem \
           $TF_VAR_dev_username@$EC2_IP <<'EOF'
             chmod +x /home/ubuntu/install-monitoring.sh
@@ -223,7 +223,7 @@ jobs:
       - name: MariaDB Backup to S3
         run: |
           ssh -o StrictHostKeyChecking=no -i key.pem \
-          $TF_VAR_dev_username@$EC2_IP <<EOF
+          $TF_VAR_developer_username@$EC2_IP <<EOF
             set -e
             TIMESTAMP=\$(date +%F-%H%M)
             mysqldump -h ${{ env.DB_ENDPOINT }} \
