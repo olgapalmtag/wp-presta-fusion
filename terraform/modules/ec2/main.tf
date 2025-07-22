@@ -58,13 +58,18 @@ resource "aws_security_group" "instance" {
   }
 }
 
+resource "aws_key_pair" "wp_key" {
+  key_name   = var.key_name
+  public_key = file("wp-presta-key.pub")
+}
+
 resource "aws_instance" "cms" {
   ami                    = "ami-0309b5fc16a20deb4"
   instance_type          = "t2.micro"
   iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
   subnet_id              = var.public_subnet_id
   vpc_security_group_ids = [aws_security_group.instance.id]
-  key_name               = var.key_name
+  key_name               = aws_key_pair.wp_key.key_name
 
   user_data = templatefile("${path.module}/cloud-init.sh", {
     end_user_username   = var.end_user_username
@@ -90,7 +95,7 @@ resource "aws_instance" "k3s" {
   iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
   subnet_id              = var.public_subnet_id
   vpc_security_group_ids = [aws_security_group.instance.id]
-  key_name               = var.key_name
+  key_name               = aws_key_pair.wp_key.key_name
 
   user_data = templatefile("${path.module}/cloud-init-k3s.sh.tpl", {
     developer_username = var.developer_username
