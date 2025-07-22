@@ -151,42 +151,42 @@ jobs:
       - name: Terraform Output
         id: tfoutput
         run: |
-          echo "DB_ENDPOINT=$(terraform output -raw mariadb_endpoint)" \
+          echo "DB_ENDPOINT=$(terraform output -raw db_endpoint)" \
           >> $GITHUB_ENV
-          echo "DB_NAME=$(terraform output -raw mariadb_name)" >> $GITHUB_ENV
+          echo "DB_NAME=$(terraform output -raw db_name)" >> $GITHUB_ENV
           echo "DB_USER=${{ secrets.DEV_USERNAME }}" >> $GITHUB_ENV
           echo "DB_PASS=$${{ secrets.DEV_PASSWORD }}" >> $GITHUB_ENV
 
       - name: Set K3s Private IP from Terraform
         run: echo "K3S_IP=$(terraform output -raw k3s_public_ip)" >> $GITHUB_ENV
 
-      - name: Create TLS Secret in K3s via SSH
-        run: |
-          echo "Creating Kubernetes TLS Secret in K3s cluster..."
-          ssh -o StrictHostKeyChecking=no -i key.pem \
-          "${{ secrets.DEV_USERNAME }}@${{ env.K3S_IP }}" bash << EOF
-            if command -v kubectl >/dev/null 2>&1; then
-              KUBECTL="kubectl"
-            elif command -v k3s >/dev/null 2>&1; then
-              KUBECTL="k3s kubectl"
-            else
-              echo "Neither kubectl nor k3s found. Aborting."
-              exit 1
-            fi
-            $KUBECTL get secret tls-secret --namespace default \
-            >/dev/null 2>&1 || \
-            $KUBECTL create secret tls tls-secret \
-            --cert=/etc/nginx/ssl/cert.pem \
-            --key=/etc/nginx/ssl/tls.key \
-            --namespace default
-          EOF
+        # - name: Create TLS Secret in K3s via SSH
+        # run: |
+        # echo "Creating Kubernetes TLS Secret in K3s cluster..."
+        #  ssh -o StrictHostKeyChecking=no -i key.pem \
+        #  "${{ secrets.DEV_USERNAME }}@${{ env.K3S_IP }}" bash << EOF
+        #    if command -v kubectl >/dev/null 2>&1; then
+        #      KUBECTL="kubectl"
+        #    elif command -v k3s >/dev/null 2>&1; then
+        #      KUBECTL="k3s kubectl"
+        #    else
+        #      echo "Neither kubectl nor k3s found. Aborting."
+        #      exit 1
+        #    fi
+        #    $KUBECTL get secret tls-secret --namespace default \
+        #    >/dev/null 2>&1 || \
+        #    $KUBECTL create secret tls tls-secret \
+        #    --cert=/etc/nginx/ssl/cert.pem \
+        #    --key=/etc/nginx/ssl/tls.key \
+        #    --namespace default
+        #  EOF
 
       - name: Deploy WordPress & PrestaShop via K3s on EC2
         run: |
           echo "Preparing WordPress & PrestaShop deployment..."
-          echo "DB_ENDPOINT=$(terraform output -raw mariadb_endpoint)" \
+          echo "DB_ENDPOINT=$(terraform output -raw db_endpoint)" \
           >> $GITHUB_ENV
-          echo "DB_NAME=$(terraform output -raw mariadb_name)" >> $GITHUB_ENV
+          echo "DB_NAME=$(terraform output -raw db_name)" >> $GITHUB_ENV
           scp -o StrictHostKeyChecking=no -i key.pem -r ./k8s/wordpress \
           "${{ secrets.DEV_USERNAME }}@${{ env.K3S_IP }}":/home/ubuntu/
           scp -o StrictHostKeyChecking=no -i key.pem -r ./k8s/prestashop \
