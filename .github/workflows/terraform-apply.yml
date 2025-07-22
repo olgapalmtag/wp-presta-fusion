@@ -86,7 +86,7 @@ jobs:
       - name: Installing nginx if needed
         run: |
           echo "Installing and configuring NGINX on EC2..."
-          echo "Connecting to $TF_VAR_dev_username@$EC2_IP"
+          echo "Connecting to ${{ secrets.DEV_USERNAME }}@$EC2_IP"
           ssh  -o StrictHostKeyChecking=no -i key.pem \
           ${{ secrets.DEV_USERNAME }}@$EC2_IP <<EOF
             # Check if nginx is installed
