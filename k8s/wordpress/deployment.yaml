@@ -46,4 +46,3 @@ spec:
       volumes:
         - name: wordpress-pv
           emptyDir: {}
-

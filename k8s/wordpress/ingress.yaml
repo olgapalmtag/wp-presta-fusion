@@ -21,4 +21,3 @@ spec:
                 name: wordpress-service
                 port:
                   number: 80
-

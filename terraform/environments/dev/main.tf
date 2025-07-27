@@ -65,4 +65,3 @@ module "s3_backup" {
   source             = "../../modules/s3-backup"
   backup_bucket_name = "wp-presta-backups"
 }
-

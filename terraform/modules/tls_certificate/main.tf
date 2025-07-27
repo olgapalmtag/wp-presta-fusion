@@ -9,7 +9,7 @@ resource "tls_self_signed_cert" "main" {
   early_renewal_hours   = 720
 
   subject {
-    common_name  = "drachenbyte.ddns-ip.net"
+    common_name  = "wpf.drachenbyte.ddns-ip.net"
     organization = "WpPrestaFusion"
   }
 
@@ -18,6 +18,8 @@ resource "tls_self_signed_cert" "main" {
     "digital_signature",
     "server_auth",
   ]
+
+  dns_names = ["wpf.drachenbyte.ddns-ip.net"]
 }
 output "tls_cert" {
   value     = tls_self_signed_cert.main.cert_pem

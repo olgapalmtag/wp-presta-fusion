@@ -4,11 +4,28 @@ set -euo pipefail
 
 echo "Manuelles Löschen aller Ressourcen startet..."
 
-# 1. EC2-Instanzen löschen
-echo "Delete EC2-Instanzen..."
-aws ec2 terminate-instances --instance-ids $(aws ec2 describe-instances \
-  --filters "Name=tag:Name,Values=wp-presta-fusion-*" \
-  --query "Reservations[].Instances[].InstanceId" --output text) || true
+# SSH-Zugang zur K3s-Instanz
+KEY_FILE="/home/ubuntu/key.pem"
+K3S_USER="ubuntu"
+K3S_IP=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=wp-presta-fusion-k3s"   --query "Reservations[].Instances[].PublicIpAddress" --output text)
+
+echo "Lösche Kubernetes Deployments auf $K3S_IP..."
+{
+  ssh -o StrictHostKeyChecking=no -i "$KEY_FILE" "$K3S_USER@$K3S_IP" <<EOF
+    set -e
+    if command -v kubectl >/dev/null 2>&1; then
+      KUBECTL="kubectl"
+    elif command -v k3s >/dev/null 2>&1; then
+      KUBECTL="k3s kubectl"
+    else
+      echo "Kein kubectl oder k3s gefunden – Abbruch."
+      exit 1
+    fi
+    $KUBECTL delete -f /home/ubuntu/wordpress --ignore-not-found
+    $KUBECTL delete -f /home/ubuntu/prestashop --ignore-not-found
+    rm -rf /home/ubuntu/wordpress /home/ubuntu/prestashop || true
+EOF
+} || echo "Kubernetes-Ressourcen konnten nicht gelöscht werden, fahre fort..."
 
 sleep 30
 

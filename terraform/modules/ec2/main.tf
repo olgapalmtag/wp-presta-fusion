@@ -105,10 +105,7 @@ resource "aws_instance" "k3s" {
   vpc_security_group_ids = [aws_security_group.instance.id]
   key_name               = aws_key_pair.wp_key.key_name
 
-  user_data = templatefile("${path.module}/cloud-init-k3s.sh.tpl", {
-    developer_username = var.developer_username
-    developer_password = var.developer_password
-  })
+  user_data = file("init_scripts/cloud-init-k3s.sh")
 
   tags = {
     Name = "${var.project}-k3s-instance"
