@@ -111,14 +111,14 @@ jobs:
                "${{ secrets.DEV_USERNAME }}@$EC2_IP":/tmp/
 
           ssh -o StrictHostKeyChecking=no -i key.pem \
-           "${{ secrets.DEV_USERNAME }}@$EC2_IP" << EOF
+           "${{ secrets.DEV_USERNAME }}@$EC2_IP" << 'EOF'
             sudo mkdir -p /etc/nginx/ssl
             sudo mv -v  /tmp/cert.pem /etc/nginx/ssl/
             sudo mv -v /tmp/tls.key /etc/nginx/ssl/
             sudo chown root:root /etc/nginx/ssl/*
             sudo chmod 644 /etc/nginx/ssl/*
             ls -l /etc/nginx/ssl/cert.pem /etc/nginx/ssl/tls.key || exit 1
-            sudo tee /etc/nginx/sites-available/default > /dev/null << EOF
+            sudo tee /etc/nginx/sites-available/default > /dev/null << 'EOL'
               server {
                 listen 443 ssl;
                 server_name wpf.drachenbyte.ddns-ip.net;
@@ -146,7 +146,7 @@ jobs:
                   proxy_set_header X-Real-IP \$remote_addr;
                 }
               }
-            EOF
+            EOL
 
             sudo systemctl restart nginx
           EOF
