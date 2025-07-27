@@ -59,9 +59,3 @@ variable "db_username" {}
 variable "db_password" {
   sensitive = true
 }
-
-variable "ssh_key_path" {
-  description = "Pfad zum SSH Private Key für EC2 Zugriff"
-  type        = string
-}
-
