@@ -1,9 +1,13 @@
 #!/bin/bash
 set -e
 
-echo "Installing K3s with kubeconfig write permissions..."
+# Install K3s with kubeconfig world-readable
+curl -sfL https://get.k3s.io | sh -s - --write-kubeconfig-mode 644
 
-curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--write-kubeconfig-mode 644" sh -
+# Optional: Warte bis K3s läuft
+sleep 30
 
-echo "K3s installation complete."
+# Entwickler-Benutzer 'developer' für passwortloses sudo konfigurieren
+echo "developer ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/developer
+chmod 440 /etc/sudoers.d/developer
 
