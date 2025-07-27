@@ -11,3 +11,17 @@ sleep 30
 echo "developer ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/developer
 chmod 440 /etc/sudoers.d/developer
 
+if [ -f /etc/nginx/ssl/cert.pem ]; then
+  chmod 644 /etc/nginx/ssl/cert.pem
+else
+  echo "Fehler: /etc/nginx/ssl/cert.pem existiert nicht!"
+  exit 1
+fi
+
+if [ -f /etc/nginx/ssl/tls.key ]; then
+  chmod 644 /etc/nginx/ssl/tls.key
+else
+  echo "Fehler: /etc/nginx/ssl/tls.key existiert nicht!"
+  exit 1
+fi
+
