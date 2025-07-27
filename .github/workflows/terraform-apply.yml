@@ -165,8 +165,7 @@ jobs:
         run: |
           echo "Creating Kubernetes TLS Secret in K3s cluster..."
           ssh -o StrictHostKeyChecking=no -i key.pem \
-          "${{ secrets.DEV_USERNAME }}@${{ env.K3S_IP }}" \
-           bash << EOF
+          "${{ secrets.DEV_USERNAME }}@${{ env.K3S_IP }}"  << 'EOF'
             set -e
             if command -v kubectl >/dev/null 2>&1; then
               KUBECTL="kubectl"
@@ -177,8 +176,8 @@ jobs:
               exit 1
             fi
 
-            $KUBECTL delete secret wpf-tls --ignore-not-found
-            $KUBECTL create secret tls wpf-tls \
+            \$KUBECTL delete secret wpf-tls --ignore-not-found || true
+            \$KUBECTL create secret tls wpf-tls \
             --cert=/etc/nginx/ssl/cert.pem \
             --key=/etc/nginx/ssl/tls.key
           EOF
@@ -188,20 +187,33 @@ jobs:
           echo "Preparing WordPress & PrestaShop deployment..."
           echo "DB_ENDPOINT=$(terraform output -raw db_endpoint)" \
           >> $GITHUB_ENV
-          echo "DB_NAME=$(terraform output -raw db_name)" >> $GITHUB_ENV
+          echo "DB_NAME=$(terraform output -raw db_name)" \
+          >> $GITHUB_ENV
+          echo "DB_USER=${{ secrets.DEV_USERNAME }}" \
+          >> $GITHUB_ENV
+          echo "DB_PASS=${{ secrets.DEV_PASSWORD }}" \
+          >> $GITHUB_ENV
+          DB_ENDPOINT=$(terraform output -raw db_endpoint)
+          DB_NAME=$(terraform output -raw db_name)
+          DB_USER=${{ secrets.DEV_USERNAME }}
+          DB_PASS=${{ secrets.DEV_PASSWORD }}
           scp -o StrictHostKeyChecking=no -i key.pem -r \
           ../../../k8s/wordpress \
-          "${{ secrets.DEV_USERNAME }}@${{ env.K3S_IP }}":/home/ubuntu/
+          "${{ secrets.DEV_USERNAME }}@${{ env.K3S_IP }}"\
+          :/home/ubuntu/
           scp -o StrictHostKeyChecking=no -i key.pem -r \
           ../../../k8s/prestashop \
-          "${{ secrets.DEV_USERNAME }}@${{ env.K3S_IP }}":/home/ubuntu/
+          "${{ secrets.DEV_USERNAME }}@${{ env.K3S_IP }}"\
+          :/home/ubuntu/
           ssh -o StrictHostKeyChecking=no -i key.pem \
-          "${{ secrets.DEV_USERNAME }}@${{ env.K3S_IP }}" bash << EOF
+          "${{ secrets.DEV_USERNAME }}@${{ env.K3S_IP }}" \
+          << 'EOF'
+            set -e
             echo "Setzen der Umgebungsvariablen..."
-            export DB_ENDPOINT=${{ env.DB_ENDPOINT }}
-            export DB_NAME=${{ env.DB_NAME }}
-            export DB_USER=${{ env.TF_VAR_db_username }}
-            export DB_PASS=${{ env.TF_VAR_db_password }}
+            export DB_ENDPOINT="${DB_ENDPOINT}"
+            export DB_NAME="${DB_NAME}"
+            export DB_USER="${DB_USER}"
+            export DB_PASS="${DB_PASS}"
             if command -v kubectl >/dev/null 2>&1; then
               KUBECTL="kubectl"
             elif command -v k3s >/dev/null 2>&1; then
@@ -213,17 +225,17 @@ jobs:
             echo "WordPress wird deployed..."
             envsubst < /home/ubuntu/wordpress/mariadb-secret.yaml.template \
             > /home/ubuntu/wordpress/mariadb-secret.yaml
-            $KUBECTL apply -f /home/ubuntu/wordpress/mariadb-secret.yaml
-            $KUBECTL apply -f /home/ubuntu/wordpress/deployment.yaml
-            $KUBECTL apply -f /home/ubuntu/wordpress/service.yaml
-            $KUBECTL apply -f /home/ubuntu/wordpress/ingress.yaml
-            echo "PrestaShop wird deployed..."
-            envsubst < /home/ubuntu/prestashop/mariadb-secret.yaml.template \
-            > /home/ubuntu/prestashop/mariadb-secret.yaml
-            $KUBECTL apply -f /home/ubuntu/prestashop/mariadb-secret.yaml
-            $KUBECTL apply -f /home/ubuntu/prestashop/deployment.yaml
-            $KUBECTL apply -f /home/ubuntu/prestashop/service.yaml
-            $KUBECTL apply -f /home/ubuntu/prestashop/ingress.yaml
+            \$KUBECTL apply -f /home/ubuntu/wordpress/mariadb-secret.yaml
+            \$KUBECTL apply -f /home/ubuntu/wordpress/deployment.yaml
+            \$KUBECTL apply -f /home/ubuntu/wordpress/service.yaml
+            \$KUBECTL apply -f /home/ubuntu/wordpress/ingress.yaml
+            #cho "PrestaShop wird deployed..."
+            #nvsubst < /home/ubuntu/prestashop/mariadb-secret.yaml.template \
+            # /home/ubuntu/prestashop/mariadb-secret.yaml
+            #$KUBECTL apply -f /home/ubuntu/prestashop/mariadb-secret.yaml
+            #$KUBECTL apply -f /home/ubuntu/prestashop/deployment.yaml
+            #$KUBECTL apply -f /home/ubuntu/prestashop/service.yaml
+            #$KUBECTL apply -f /home/ubuntu/prestashop/ingress.yaml
           EOF
 
       - name: Upload and install Monitoring on EC2
@@ -239,14 +251,22 @@ jobs:
 
       - name: MariaDB Backup to S3
         run: |
+          DB_USER=${{ secrets.DEV_USERNAME }}
+          DB_PASS=${{ secrets.DEV_PASSWORD }}
+          DB_ENDPOINT=$(terraform output -raw db_endpoint)
+          DB_NAME=$(terraform output -raw db_name)
+          BACKUP_FILE="backup-\$(date +%F-%H%M).sql"
+
           ssh -o StrictHostKeyChecking=no -i key.pem \
           "${{ secrets.DEV_USERNAME }}@$EC2_IP" << EOF
             set -e
-            TIMESTAMP=\$(date +%F-%H%M)
-            mysqldump -h ${{ env.DB_ENDPOINT }} \
-            -u ${{ secrets.DEV_USERNAME }} \
-            -p ${{ secrets.DEV_PASSWORT }} \
-            ${{ env.DB_NAME }} > \$BACKUP_FILE
-            aws s3 cp \$BACKUP_FILE s3://wp-presta-backups/db-backups/ \
+            export DB_USER="$DB_USER"
+            export DB_PASS="$DB_PASS"
+            export DB_ENDPOINT="$DB_ENDPOINT"
+            export DB_NAME="$DB_NAME"
+            export BACKUP_FILE="$BACKUP_FILE"
+            mysqldump -h "$DB_ENDPOINT" -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" \
+            > /tmp/$BACKUP_FILE
+            aws s3 cp /tmp/$BACKUP_FILE s3://wp-presta-backups/db-backups/ \
             --region eu-west-3
           EOF
