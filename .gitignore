@@ -4,3 +4,4 @@ my_terraform.env
 *.tfstate.backup
 .terraform/
 wp-presta-fusion.zip
+wp-presta-fusion.zip
