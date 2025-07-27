@@ -168,18 +168,19 @@ jobs:
           "${{ secrets.DEV_USERNAME }}@${{ env.K3S_IP }}"  << 'EOF'
             set -e
             if command -v kubectl >/dev/null 2>&1; then
-              KUBECTL="kubectl"
+              kubectl delete secret wpf-tls --ignore-not-found || true
+              kubectl create secret tls wpf-tls \
+            --cert=/etc/nginx/ssl/cert.pem \
+            --key=/etc/nginx/ssl/tls.key
             elif command -v k3s >/dev/null 2>&1; then
-              KUBECTL="k3s kubectl"
+              k3s delete secret wpf-tls --ignore-not-found || true
+              k3c create secret tls wpf-tls \
+              --cert=/etc/nginx/ssl/cert.pem \
+              --key=/etc/nginx/ssl/tls.key
             else
               echo "Neither kubectl nor k3s found – aborting."
               exit 1
             fi
-
-            \$KUBECTL delete secret wpf-tls --ignore-not-found || true
-            \$KUBECTL create secret tls wpf-tls \
-            --cert=/etc/nginx/ssl/cert.pem \
-            --key=/etc/nginx/ssl/tls.key
           EOF
 
       - name: Deploy WordPress & PrestaShop via K3s on EC2
