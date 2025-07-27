@@ -215,20 +215,24 @@ jobs:
             export DB_USER="${DB_USER}"
             export DB_PASS="${DB_PASS}"
             if command -v kubectl >/dev/null 2>&1; then
-              KUBECTL="kubectl"
+              echo "WordPress wird deployed..."
+              envsubst < /home/ubuntu/wordpress/mariadb-secret.yaml.template \
+              > /home/ubuntu/wordpress/mariadb-secret.yaml
+              echo "Kubectl apply wordpress"
+              kubectl apply -f /home/ubuntu/wordpress/mariadb-secret.yaml
+              kubectl apply -f /home/ubuntu/wordpress/deployment.yaml
+              kubectl apply -f /home/ubuntu/wordpress/service.yaml
+              kubectl apply -f /home/ubuntu/wordpress/ingress.yaml
             elif command -v k3s >/dev/null 2>&1; then
-              KUBECTL="k3s kubectl"
+              echo "k3c Kubectl apply worpress"
+              k3s kubectl apply -f /home/ubuntu/wordpress/mariadb-secret.yaml
+              k3s kubectl apply -f /home/ubuntu/wordpress/deployment.yaml
+              k3s kubectl apply -f /home/ubuntu/wordpress/service.yaml
+              k3s kubectl apply -f /home/ubuntu/wordpress/ingress.yaml
             else
               echo "Kein kubectl oder k3s gefunden – Abbruch."
               exit 1
             fi
-            echo "WordPress wird deployed..."
-            envsubst < /home/ubuntu/wordpress/mariadb-secret.yaml.template \
-            > /home/ubuntu/wordpress/mariadb-secret.yaml
-            \$KUBECTL apply -f /home/ubuntu/wordpress/mariadb-secret.yaml
-            \$KUBECTL apply -f /home/ubuntu/wordpress/deployment.yaml
-            \$KUBECTL apply -f /home/ubuntu/wordpress/service.yaml
-            \$KUBECTL apply -f /home/ubuntu/wordpress/ingress.yaml
             #cho "PrestaShop wird deployed..."
             #nvsubst < /home/ubuntu/prestashop/mariadb-secret.yaml.template \
             # /home/ubuntu/prestashop/mariadb-secret.yaml
