@@ -1,5 +1,5 @@
 ---
-name: Terraform Apply & NGINX TLS Config
+name: Terraform Apply No Cert
 
 on:
   workflow_dispatch:
