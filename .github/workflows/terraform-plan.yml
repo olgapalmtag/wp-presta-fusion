@@ -57,5 +57,9 @@ jobs:
         run: terraform validate
 
       - name: Terraform Plan
-        run: terraform plan
-
+        env:
+          ACM_CERT_ARN: ${{ secrets.ACM_CERT_ARN }}
+        run: |
+          echo "Running terraform plan with ACM Certificate ARN..."
+          terraform plan \
+            -var="acm_certificate_arn=${ACM_CERT_ARN}"

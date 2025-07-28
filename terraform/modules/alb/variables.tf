@@ -13,8 +13,8 @@ variable "public_subnet_ids" {
   description = "List of public subnet IDs for ALB placement"
 }
 
-variable "alb_security_group_id" {
+variable "acm_certificate_arn" {
+  description = "ARN of the ACM TLS certificate for HTTPS listener"
   type        = string
-  description = "Security group ID attached to the ALB"
 }
 

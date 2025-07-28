@@ -59,3 +59,8 @@ variable "db_username" {}
 variable "db_password" {
   sensitive = true
 }
+
+variable "acm_certificate_arn" {
+  description = "ACM Certificate ARN for HTTPS ALB listener"
+  type        = string
+}

@@ -68,8 +68,12 @@ variable "public_subnet_id" {
   description = "ID of the public subnet for the EC2 instance"
 }
 
+variable "alb_security_group_id" {
+  description = "Security Group ID of the ALB to allow HTTPS"
+  type        = string
+}
+
 variable "key_name" {
   type        = string
   description = "Name of the existing EC2 key pair for SSH access"
 }
-

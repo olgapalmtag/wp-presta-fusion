@@ -26,6 +26,7 @@ module "ec2" {
   source              = "../../modules/ec2"
   project             = "wp-presta-fusion"
   vpc_id              = module.vpc.vpc_id
+  alb_security_group_id = module.alb.alb_security_group_id
   public_subnet_id    = module.vpc.public_subnet_ids[0]
   key_name            = "wp-presta-key"
   end_user_username   = var.end_user_username
@@ -43,10 +44,10 @@ module "ec2" {
 # ALB Modul
 module "alb" {
   source                = "../../modules/alb"
+  acm_certificate_arn  = var.acm_certificate_arn
   project               = "wp-presta-fusion"
   vpc_id                = module.vpc.vpc_id
   public_subnet_ids     = module.vpc.public_subnet_ids
-  alb_security_group_id = module.ec2.alb_sg_id
 }
 
 # Maria DB

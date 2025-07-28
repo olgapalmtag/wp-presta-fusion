@@ -59,8 +59,15 @@ jobs:
       - name: Terraform Plan
         run: terraform plan
 
+      - name: Set ACM_CERT_ARN env var
+        run: |
+          echo "ACM_CERT_ARN=${{ secrets.ACM_CERT_ARN }}" \
+          >> $GITHUB_ENV
+
       - name: Terraform Apply
-        run: terraform apply -auto-approve
+        run: |
+          terraform apply -auto-approve \
+          -var="acm_certificate_arn=$ACM_CERT_ARN"
 
       - name: Wait for EC2 and RDS readiness
         run: |
@@ -153,7 +160,7 @@ jobs:
                  }
                }
              EOT
-             sudo systemctl restart nginx
+             sudo nginx -t && sudo systemctl reload nginx
           EOF
 
       - name: Terraform Output
@@ -255,7 +262,7 @@ jobs:
             fi
             echo "PrestaShop will be deployed..."
             envsubst < /home/ubuntu/prestashop/mariadb-secret.yaml.template \
-            > home/ubuntu/prestashop/mariadb-secret.yaml
+            > /home/ubuntu/prestashop/mariadb-secret.yaml
             if command -v kubectl >/dev/null 2>&1; then
             echo "Kubectl apply prestashop"
               kubectl apply -f /home/ubuntu/prestashop/mariadb-secret.yaml
