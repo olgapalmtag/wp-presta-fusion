@@ -146,6 +146,7 @@ jobs:
                 }
               }
             EOL
+
             sudo systemctl restart nginx
           EOF
 
@@ -161,29 +162,17 @@ jobs:
       - name: Set K3s Private IP from Terraform
         run: echo "K3S_IP=$(terraform output -raw k3s_public_ip)" >> $GITHUB_ENV
 
-      - name: Copy TLS to K3s
-        run: |
-          scp -o StrictHostKeyChecking=no -i key.pem \
-          cert.pem tls.key \
-          "${{ secrets.DEV_USERNAME }}@${{ env.K3S_IP }}":/tmp/
-
       - name: Create TLS Secret in K3s via SSH
         run: |
           echo "Creating Kubernetes TLS Secret in K3s cluster..."
           ssh -o StrictHostKeyChecking=no -i key.pem \
           "${{ secrets.DEV_USERNAME }}@${{ env.K3S_IP }}"  << 'EOF'
             set -e
-            sudo mkdir -p /etc/nginx/ssl
-            sudo mv -v  /tmp/cert.pem /etc/nginx/ssl/
-            sudo mv -v /tmp/tls.key /etc/nginx/ssl/
-            sudo chown root:root /etc/nginx/ssl/*
-            sudo chmod 644 /etc/nginx/ssl/*
-            ls -l /etc/nginx/ssl/cert.pem /etc/nginx/ssl/tls.key || exit 1
             if command -v kubectl >/dev/null 2>&1; then
               kubectl delete secret wpf-tls --ignore-not-found || true
               kubectl create secret tls wpf-tls \
-              --cert=/etc/nginx/ssl/cert.pem \
-              --key=/etc/nginx/ssl/tls.key
+            --cert=/etc/nginx/ssl/cert.pem \
+            --key=/etc/nginx/ssl/tls.key
             elif command -v k3s >/dev/null 2>&1; then
               k3s delete secret wpf-tls --ignore-not-found || true
               k3c create secret tls wpf-tls \
