@@ -16,30 +16,32 @@ spec:
         - name: prestashop
           image: prestashop/prestashop:latest
           ports:
-            - containerPort: 80
+            - containerPort: 4000
           env:
             - name: DB_SERVER
               valueFrom:
                 secretKeyRef:
                   name: prestashop-mariadb-secret
                   key: DB_HOST
-            - name: DB_NAME
+            - name: PRESTASHOP_DATABASE_NAME
               valueFrom:
                 secretKeyRef:
                   name: prestashop-mariadb-secret
                   key: DB_NAME
-            - name: DB_USER
+            - name: PRESTASHOP_DATABASE_USER
               valueFrom:
                 secretKeyRef:
                   name: prestashop-mariadb-secret
                   key: DB_USER
-            - name: DB_PASSWD
+            - name: PRESTASHOP_DATABASE_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: prestashop-mariadb-secret
                   key: DB_PASS
-            - name: PS_INSTALL_AUTO
-              value: "1"
-            - name: PS_DEV_MODE
-              value: "1"
+          volumeMounts:
+            - name: prestashop-data
+              mountPath: /var/www/html
+      volumes:
+        - name: prestashop-data
+          emptyDir: {}
 

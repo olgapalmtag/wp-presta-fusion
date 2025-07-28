@@ -234,10 +234,10 @@ jobs:
             export DB_NAME="${DB_NAME}"
             export DB_USER="${DB_USER}"
             export DB_PASS="${DB_PASS}"
+            echo "WordPress wird deployed..."
+            envsubst < /home/ubuntu/wordpress/mariadb-secret.yaml.template \
+            > /home/ubuntu/wordpress/mariadb-secret.yaml
             if command -v kubectl >/dev/null 2>&1; then
-              echo "WordPress wird deployed..."
-              envsubst < /home/ubuntu/wordpress/mariadb-secret.yaml.template \
-              > /home/ubuntu/wordpress/mariadb-secret.yaml
               echo "Kubectl apply wordpress"
               kubectl apply -f /home/ubuntu/wordpress/mariadb-secret.yaml
               kubectl apply -f /home/ubuntu/wordpress/deployment.yaml
@@ -253,11 +253,11 @@ jobs:
               echo "Kein kubectl oder k3s gefunden – Abbruch."
               exit 1
             fi
-            if command -v kubectl >/dev/null 2>&1; then
             echo "PrestaShop will be deployed..."
             envsubst < /home/ubuntu/prestashop/mariadb-secret.yaml.template \
             > home/ubuntu/prestashop/mariadb-secret.yaml
-              echo "Kubectl apply prestashop"
+            if command -v kubectl >/dev/null 2>&1; then
+            echo "Kubectl apply prestashop"
               kubectl apply -f /home/ubuntu/prestashop/mariadb-secret.yaml
               kubectl apply -f /home/ubuntu/prestashop/deployment.yaml
               kubectl apply -f /home/ubuntu/prestashop/service.yaml
