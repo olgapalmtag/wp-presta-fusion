@@ -63,7 +63,7 @@ resource "aws_lb_listener" "http" {
 }
 
 resource "aws_security_group" "alb" {
-  name        = "${var.project}-alb-sg"
+  name        = "${var.project}-alb-sg-v2"
   description = "Allow HTTP and HTTPS access to ALB"
   vpc_id      = var.vpc_id
 
@@ -92,7 +92,7 @@ resource "aws_security_group" "alb" {
   }
 
   tags = {
-    Name = "${var.project}-alb-sg"
+    Name = "${var.project}-alb-sg-v2"
   }
 }
 
