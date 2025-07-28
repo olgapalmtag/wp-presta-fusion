@@ -73,7 +73,7 @@ resource "aws_key_pair" "wp_key" {
 
 resource "aws_instance" "cms" {
   ami                    = "ami-0309b5fc16a20deb4"
-  instance_type          = "t2.micro"
+  instance_type          = "t3.small"
   iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
   subnet_id              = var.public_subnet_id
   vpc_security_group_ids = [aws_security_group.instance.id]
@@ -99,7 +99,7 @@ resource "aws_instance" "cms" {
 
 resource "aws_instance" "k3s" {
   ami                    = "ami-0309b5fc16a20deb4"
-  instance_type          = "t2.micro"
+  instance_type          = "t3.small"
   iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
   subnet_id              = var.public_subnet_id
   vpc_security_group_ids = [aws_security_group.instance.id]
