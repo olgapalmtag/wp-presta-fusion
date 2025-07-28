@@ -56,18 +56,20 @@ jobs:
           terraform taint module.ec2.aws_instance.k3s \
           || echo "k3s not found or already tainted"
 
-      - name: Terraform Plan
-        run: terraform plan
-
       - name: Set ACM_CERT_ARN env var
         run: |
           echo "ACM_CERT_ARN=${{ secrets.ACM_CERT_ARN }}" \
           >> $GITHUB_ENV
 
+      - name: Terraform Plan
+        run: |
+          terraform plan \
+          -var="acm_certificate_arn=${ACM_CERT_ARN}"
+
       - name: Terraform Apply
         run: |
           terraform apply -auto-approve \
-          -var="acm_certificate_arn=$ACM_CERT_ARN"
+          -var="acm_certificate_arn=${ACM_CERT_ARN}"
 
       - name: Wait for EC2 and RDS readiness
         run: |
