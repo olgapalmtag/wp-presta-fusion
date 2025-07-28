@@ -20,7 +20,7 @@ resource "aws_lb_target_group" "cms" {
 
   health_check {
     path                = "/"
-    protocol            = "HTTPS" 
+    protocol            = "HTTPS"
     interval            = 30
     timeout             = 5
     healthy_threshold   = 5

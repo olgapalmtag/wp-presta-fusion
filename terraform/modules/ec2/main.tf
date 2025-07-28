@@ -38,11 +38,11 @@ resource "aws_security_group" "instance" {
   vpc_id      = var.vpc_id
 
   ingress {
-    description = "HTTPS"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    security_groups  = [var.alb_security_group_id]
+    description     = "HTTPS"
+    from_port       = 443
+    to_port         = 443
+    protocol        = "tcp"
+    security_groups = [var.alb_security_group_id]
   }
 
   ingress {
