@@ -81,9 +81,8 @@ jobs:
 
       - name: Extract TLS Outputs to Files
         run: |
-          terraform output -raw tls_cert > cert.pem
-          terraform output -raw tls_key > tls.key
-
+          echo "$(terraform output -raw tls_cert)" > cert.pem
+          echo "$(terraform output -raw tls_key)" > tls.key
       - name: Installing nginx if needed
         run: |
           echo "Installing and configuring NGINX on EC2..."

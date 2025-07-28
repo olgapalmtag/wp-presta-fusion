@@ -103,10 +103,41 @@ IGW_ID=$(aws ec2 describe-internet-gateways --filters "Name=attachment.vpc-id,Va
 aws ec2 detach-internet-gateway --internet-gateway-id $IGW_ID --vpc-id $VPC_ID || true
 aws ec2 delete-internet-gateway --internet-gateway-id $IGW_ID || true
 
-echo "Delete VPC..."
-aws ec2 delete-vpc --vpc-id $VPC_ID || true
+echo "Starte Löschung aller VPCs mit Tag-Name 'wp-presta-fusion-*'..."
 
-aws ec2 delete-key-pair --key-name "wp-presta-key"
+# VPC-IDs ermitteln
+VPC_IDS=$(aws ec2 describe-vpcs \
+  --filters "Name=tag:Name,Values=wp-presta-fusion-*" \
+  --query "Vpcs[].VpcId" \
+  --output text)
 
+if [ -z "$VPC_IDS" ]; then
+  echo "Keine VPCs mit diesem Namen gefunden."
+  exit 0
+fi
+
+# VPCs durchlaufen und löschen
+for vpc in $VPC_IDS; do
+  echo "Versuche VPC $vpc zu löschen..."
+
+  # Vorher ggf. abhängige Ressourcen prüfen/löschen (Internet Gateways etc.)
+  IGW_ID=$(aws ec2 describe-internet-gateways \
+    --filters "Name=attachment.vpc-id,Values=$vpc" \
+    --query "InternetGateways[0].InternetGatewayId" \
+    --output text 2>/dev/null || true)
+
+  if [ "$IGW_ID" != "None" ] && [ -n "$IGW_ID" ]; then
+    echo "Internet Gateway $IGW_ID von VPC $vpc trennen und löschen..."
+    aws ec2 detach-internet-gateway --internet-gateway-id "$IGW_ID" --vpc-id "$vpc" || true
+    aws ec2 delete-internet-gateway --internet-gateway-id "$IGW_ID" || true
+  fi
+
+  # VPC löschen
+  aws ec2 delete-vpc --vpc-id "$vpc" && \
+    echo "VPC $vpc erfolgreich gelöscht." || \
+    echo "VPC $vpc konnte nicht gelöscht werden. Möglicherweise hängen noch Ressourcen daran."
+done
+
+echo "VPC-Löschung abgeschlossen."
 echo "All Ressourcen are deleted."
 
