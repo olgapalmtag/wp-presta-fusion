@@ -230,7 +230,7 @@ jobs:
           :/home/ubuntu/
           ssh -o StrictHostKeyChecking=no -i key.pem \
           "${{ secrets.DEV_USERNAME }}@${{ env.K3S_IP }}" \
-          << 'EOF'
+          << EOF
             set -e
             echo "Setzen der Umgebungsvariablen..."
             export DB_ENDPOINT="${DB_ENDPOINT}"
