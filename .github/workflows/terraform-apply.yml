@@ -154,9 +154,9 @@ jobs:
       - name: Terraform Output
         id: tfoutput
         run: |
-          echo "DB_ENDPOINT=$(terraform output -raw db_endpoint)" \
+          echo "DB_ENDPOINT=$(terraform output -raw mariadb_endpoint)" \
           >> $GITHUB_ENV
-          echo "DB_NAME=$(terraform output -raw db_name)" >> $GITHUB_ENV
+          echo "DB_NAME=$(terraform output -raw mariadb_name)" >> $GITHUB_ENV
           echo "DB_USER=${{ secrets.DEV_USERNAME }}" >> $GITHUB_ENV
           echo "DB_PASS=$${{ secrets.DEV_PASSWORD }}" >> $GITHUB_ENV
 
@@ -200,16 +200,16 @@ jobs:
       - name: Deploy WordPress & PrestaShop via K3s on EC2
         run: |
           echo "Preparing WordPress & PrestaShop deployment..."
-          echo "DB_ENDPOINT=$(terraform output -raw db_endpoint)" \
+          echo "DB_ENDPOINT=$(terraform output -raw mariadb_endpoint)" \
           >> $GITHUB_ENV
-          echo "DB_NAME=$(terraform output -raw db_name)" \
+          echo "DB_NAME=$(terraform output -raw mariadb_name)" \
           >> $GITHUB_ENV
           echo "DB_USER=${{ secrets.DEV_USERNAME }}" \
           >> $GITHUB_ENV
           echo "DB_PASS=${{ secrets.DEV_PASSWORD }}" \
           >> $GITHUB_ENV
-          DB_ENDPOINT=$(terraform output -raw db_endpoint)
-          DB_NAME=$(terraform output -raw db_name)
+          DB_ENDPOINT=$(terraform output -raw mariadb_endpoint)
+          DB_NAME=$(terraform output -raw mariadb_name)
           DB_USER=${{ secrets.DEV_USERNAME }}
           DB_PASS=${{ secrets.DEV_PASSWORD }}
           scp -o StrictHostKeyChecking=no -i key.pem -r \
@@ -285,8 +285,8 @@ jobs:
         run: |
           DB_USER=${{ secrets.DEV_USERNAME }}
           DB_PASS=${{ secrets.DEV_PASSWORD }}
-          DB_ENDPOINT=$(terraform output -raw db_endpoint)
-          DB_NAME=$(terraform output -raw db_name)
+          DB_ENDPOINT=$(terraform output -raw mariadb_endpoint)
+          DB_NAME=$(terraform output -raw mariadb_name)
           BACKUP_FILE="backup-\$(date +%F-%H%M).sql"
 
           ssh -o StrictHostKeyChecking=no -i key.pem \

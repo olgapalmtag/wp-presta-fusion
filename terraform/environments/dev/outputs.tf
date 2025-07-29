@@ -1,22 +1,23 @@
-output "mariadb_username" {
-  value = module.mariadb.mariadb_username
+output "mariadb_endpoint" {
+  value = module.mariadb.db_endpoint
 }
 
-output "mariadb_password" {
-  value     = module.mariadb.mariadb_password
-  sensitive = true
-}
-
-output "db_endpoint" {
-  value = module.mariadb.db_instance_endpoint
-}
-
-output "db_port" {
+output "mariadb_port" {
   value = module.mariadb.db_instance_port
 }
 
-output "db_name" {
+output "mariadb_name" {
   value = module.mariadb.db_name
+}
+
+output "mariadb_username" {
+  value     = module.mariadb.db_username
+  sensitive = true
+}
+
+output "mariadb_password" {
+  value     = module.mariadb.db_password
+  sensitive = true
 }
 
 output "s3_backup_bucket" {

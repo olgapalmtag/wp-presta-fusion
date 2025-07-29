@@ -16,8 +16,7 @@ output "private_subnet_ids" {
   ]
 }
 
-
-output "default_sg_id" {
-  value = aws_vpc.main.default_security_group_id
+output "mariadb_sg_id" {
+  value = aws_security_group.mariadb_sg.id
 }
 

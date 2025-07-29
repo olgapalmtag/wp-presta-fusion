@@ -1,30 +1,37 @@
 variable "project" {
-  description = "Projektname für Resourcenamen"
   type        = string
-}
-
-variable "db_name" {
-  description = "Name der MariaDB-Datenbank"
-  type        = string
+  description = "Project prefix for naming resources"
 }
 
 variable "db_username" {
-  description = "Benutzername für die MariaDB"
   type        = string
+  description = "DB username"
 }
 
 variable "db_password" {
-  description = "Passwort für die MariaDB"
   type        = string
+  description = "DB password"
   sensitive   = true
 }
 
-variable "subnet_ids" {
-  description = "List of private subnet IDs for RDS"
-  type        = list(string)
-}
-variable "security_group_id" {
-  description = "Security Group ID für die DB"
+variable "db_name" {
   type        = string
+  description = "Database name"
+}
+
+variable "subnet_ids" {
+  type        = list(string)
+  description = "List of private subnet IDs for RDS"
+}
+
+variable "security_group_id" {
+  type        = string
+  description = "Security Group ID allowing access to MariaDB"
+}
+
+variable "port" {
+  description = "Port for MariaDB"
+  type        = number
+  default     = 3306
 }
 

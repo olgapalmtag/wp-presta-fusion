@@ -40,6 +40,11 @@ spec:
                 secretKeyRef:
                   name: mariadb-secret
                   key: DB_NAME
+            - name: WORDPRESS_DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: mariadb-secret
+                  key: DB_PORT
           volumeMounts:
             - name: wordpress-pv
               mountPath: /var/www/html

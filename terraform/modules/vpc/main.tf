@@ -96,3 +96,28 @@ resource "aws_route_table_association" "private_b" {
   route_table_id = aws_route_table.private.id
 }
 
+resource "aws_security_group" "mariadb_sg" {
+  name        = "${var.project}-mariadb-sg"
+  description = "Allow K3s to access RDS MariaDB"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    description = "Allow DB access from VPC"
+    from_port   = 3306
+    to_port     = 3306
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.0.0/16"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${var.project}-mariadb-sg"
+  }
+}
+
