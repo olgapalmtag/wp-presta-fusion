@@ -24,22 +24,22 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: mariadb-secret
-                  key: db_host
+                  key: DB_HOST
             - name: WORDPRESS_DB_USER
               valueFrom:
                 secretKeyRef:
                   name: mariadb-secret
-                  key: db_user
+                  key: DB_USER
             - name: WORDPRESS_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: mariadb-secret
-                  key: db_password
+                  key: DB_PASSWORD
             - name: WORDPRESS_DB_NAME
               valueFrom:
                 secretKeyRef:
                   name: mariadb-secret
-                  key: db_name
+                  key: DB_NAME
           volumeMounts:
             - name: wordpress-pv
               mountPath: /var/www/html
