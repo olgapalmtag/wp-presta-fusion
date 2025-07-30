@@ -36,11 +36,11 @@ jobs:
             BACKUP_FILE="/home/ubuntu/mariadb-backup-\$TIMESTAMP.sql"
 
             echo "Dumping database..."
-            mysqldump -h $DB_HOST -u $DB_USER -p"$DB_PASS" $DB_NAME > \$BACKUP_FILE
-
+            mysqldump -h $DB_HOST -u $DB_USER -p"$DB_PASS" \
+            $DB_NAME > \$BACKUP_FILE
             echo "Uploading to S3..."
-            aws s3 cp \$BACKUP_FILE s3://$S3_BUCKET/db-backups/\$(basename \$BACKUP_FILE) --region $AWS_REGION
-
+            aws s3 cp \$BACKUP_FILE \
+            s3://$S3_BUCKET/db-backups/\$(basename \$BACKUP_FILE) \
+            --region $AWS_REGION
             echo "Backup complete: \$BACKUP_FILE"
           EOF
-

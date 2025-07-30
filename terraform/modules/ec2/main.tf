@@ -78,3 +78,42 @@ resource "aws_instance" "k3s" {
   }
 }
 
+resource "aws_security_group" "k3s_node" {
+  name        = "${var.project}-k3s-sg"
+  description = "Allow EC2/NGINX to reach Traefik NodePort on K3s"
+  vpc_id      = var.vpc_id
+
+  # Traefik websecure NodePort (HTTPS 32443) - Quelle ist die EC2/NGINX-SG
+  ingress {
+    description     = "Traefik websecure NodePort from EC2 NGINX"
+    from_port       = 32443
+    to_port         = 32443
+    protocol        = "tcp"
+    security_groups = [aws_security_group.instance.id]
+  }
+
+  # Optional: HTTP NodePort (nur für Tests)
+  # ingress {
+  #   from_port       = 32080
+  #   to_port         = 32080
+  #   protocol        = "tcp"
+  #   security_groups = [aws_security_group.instance.id]
+  # }
+
+  ingress {
+    description = "SSH"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = { Name = "${var.project}-k3s-sg" }
+}

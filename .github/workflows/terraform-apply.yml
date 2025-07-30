@@ -92,23 +92,6 @@ jobs:
         run: |
           echo "$(terraform output -raw tls_cert)" > cert.pem
           echo "$(terraform output -raw tls_key)" > tls.key
-      - name: Installing nginx if needed
-        run: |
-          echo "Installing and configuring NGINX on EC2..."
-          echo "Connecting to ${{ secrets.DEV_USERNAME }}@$EC2_IP"
-          ssh  -o StrictHostKeyChecking=no -i key.pem \
-          "${{ secrets.DEV_USERNAME }}@$EC2_IP" << EOF
-            # Check if nginx is installed
-            if ! command -v nginx > /dev/null; then
-              echo "NGINX not found. Installing..."
-              sudo apt update
-              sudo apt install -y nginx
-              sudo systemctl enable nginx
-              sudo systemctl start nginx
-            else
-              echo "NGINX is already installed."
-            fi
-          EOF
 
       - name: Upload TLS to EC2 & Configure NGINX
         run: |
@@ -117,37 +100,23 @@ jobs:
               -i key.pem \
               cert.pem tls.key \
                "${{ secrets.DEV_USERNAME }}@$EC2_IP":/tmp/
+          echo "K3S_PRIVATE_IP=$(terraform output -raw k3s_private_ip)" \
+          >> $GITHUB_ENV
 
           ssh -o StrictHostKeyChecking=no -i key.pem \
-          "${{ secrets.DEV_USERNAME }}@$EC2_IP" << 'EOF'
+          "${{ secrets.DEV_USERNAME }}@$EC2_IP" << EOF
             sudo mkdir -p /etc/nginx/ssl
             sudo mv -v  /tmp/cert.pem /etc/nginx/ssl/
             sudo mv -v /tmp/tls.key /etc/nginx/ssl/
             sudo chown root:root /etc/nginx/ssl/*
-            sudo chmod 644 /etc/nginx/ssl/*
-            ls -l /etc/nginx/ssl/cert.pem /etc/nginx/ssl/tls.key || exit 1
-
-            sudo bash -c 'cat > /etc/nginx/sites-available/default' << 'EOC'
-              server {
-                listen 80;
-                server_name wpf.drachenbyte.ddns-ip.net;
-                return 301 https://$host$request_uri;
-              }
-
-              server {
-                listen 443 ssl;
-                server_name wpf.drachenbyte.ddns-ip.net;
-
-                ssl_certificate /etc/nginx/ssl/cert.pem;
-                ssl_certificate_key /etc/nginx/ssl/tls.key;
-
-              location / {
-                proxy_pass http://127.0.0.1:3000;
-                proxy_set_header Host $host;
-                proxy_set_header X-Real-IP $remote_addr;
-                }
-              }
-            EOC
+            sudo chmod 600 /etc/nginx/ssl/*
+            ls -l /etc/nginx/ssl/cert.pem /etc/nginx/ssl/tls.key \
+            || exit 1
+            export K3S_PRIVATE_IP="${K3S_PRIVATE_IP}"
+            sudo sed -i "s/k3s_node_private/${K3S_PRIVATE_IP}/g" \
+            /etc/nginx/sites-available/default
+            sudo nginx -t
+            sudo systemctl reload nginx
 
           EOF
 
@@ -156,12 +125,10 @@ jobs:
         run: |
           echo "DB_ENDPOINT=$(terraform output -raw mariadb_endpoint)" \
           >> $GITHUB_ENV
-          echo "DB_NAME=$(terraform output -raw mariadb_name)" >> $GITHUB_ENV
+          echo "DB_NAME=$(terraform output -raw mariadb_name)" \
+          >> $GITHUB_ENV
           echo "DB_USER=${{ secrets.DEV_USERNAME }}" >> $GITHUB_ENV
           echo "DB_PASS=$${{ secrets.DEV_PASSWORD }}" >> $GITHUB_ENV
-
-      - name: Set K3s Private IP from Terraform
-        run: echo "K3S_IP=$(terraform output -raw k3s_public_ip)" >> $GITHUB_ENV
 
       - name: Copy TLS to K3s
         run: |
@@ -237,12 +204,16 @@ jobs:
               kubectl apply -f /home/ubuntu/wordpress/mariadb-secret.yaml
               kubectl apply -f /home/ubuntu/wordpress/deployment.yaml
               kubectl apply -f /home/ubuntu/wordpress/service.yaml
+              kubectl apply -f \
+              /home/ubuntu/wordpress/traefik-service-nodeport.yaml
               kubectl apply -f /home/ubuntu/wordpress/ingress.yaml
             elif command -v k3s >/dev/null 2>&1; then
               echo "k3c Kubectl apply worpress"
               k3s kubectl apply -f /home/ubuntu/wordpress/mariadb-secret.yaml
               k3s kubectl apply -f /home/ubuntu/wordpress/deployment.yaml
               k3s kubectl apply -f /home/ubuntu/wordpress/service.yaml
+              k3s kubectl apply -f \
+              /home/ubuntu/wordpress/traefik-service-nodeport.yaml
               k3s kubectl apply -f /home/ubuntu/wordpress/ingress.yaml
             else
               echo "Kein kubectl oder k3s gefunden – Abbruch."
@@ -269,7 +240,7 @@ jobs:
             #fi
           EOF
 
-      - name: Upload and install Monitoring on EC2
+      - name: Upload and install Monitoring on K3S
         run: |
           echo "Uploading install-monitoring.sh to EC2 and executing it..."
           scp -o StrictHostKeyChecking=no -i key.pem \
@@ -279,26 +250,4 @@ jobs:
           "${{ secrets.DEV_USERNAME }}@${{ env.K3S_IP }}" <<EOF
             chmod +x /home/ubuntu/install-monitoring.sh
             bash /home/ubuntu/install-monitoring.sh
-          EOF
-
-      - name: MariaDB Backup to S3
-        run: |
-          DB_USER=${{ secrets.DEV_USERNAME }}
-          DB_PASS=${{ secrets.DEV_PASSWORD }}
-          DB_ENDPOINT=$(terraform output -raw mariadb_endpoint)
-          DB_NAME=$(terraform output -raw mariadb_name)
-          BACKUP_FILE="backup-\$(date +%F-%H%M).sql"
-
-          ssh -o StrictHostKeyChecking=no -i key.pem \
-          "${{ secrets.DEV_USERNAME }}@$EC2_IP" << EOF
-            set -e
-            export DB_USER="$DB_USER"
-            export DB_PASS="$DB_PASS"
-            export DB_ENDPOINT="$DB_ENDPOINT"
-            export DB_NAME="$DB_NAME"
-            export BACKUP_FILE="$BACKUP_FILE"
-            mysqldump -h "$DB_ENDPOINT" -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" \
-            > /tmp/$BACKUP_FILE
-            aws s3 cp /tmp/$BACKUP_FILE s3://wp-presta-backups/db-backups/ \
-            --region eu-west-3
           EOF

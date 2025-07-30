@@ -6,8 +6,8 @@ output "ec2_instance_id" {
   value = aws_instance.cms.id
 }
 
-output "k3s_instance_public_ip" {
-  value = aws_instance.k3s.public_ip
+output "k3s_instance_id" {
+  value = aws_instance.k3s.id
 }
 
 output "kubeconfig_path_on_instance" {

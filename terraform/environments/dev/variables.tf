@@ -1,3 +1,8 @@
+variable "project" {
+  type    = string
+  default = "wp-presta-fusion"
+}
+
 variable "end_user_username" {
   description = "Username for end user"
   type        = string

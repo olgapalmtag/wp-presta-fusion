@@ -2,14 +2,15 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: wordpress-ingress
+  namespace: default
   annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/rewrite-target: /
+    # Traefik: auf HTTPS-EntryPoint binden
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    # (optional, für ältere Controller) zusätzlich die Klassik-Annotation:
+    kubernetes.io/ingress.class: traefik
 spec:
-  tls:
-    - hosts:
-        - wpf.drachenbyte.ddns-ip.net
-      secretName: tls-secret
+  ingressClassName: traefik
   rules:
     - host: wpf.drachenbyte.ddns-ip.net
       http:
@@ -18,6 +19,11 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: wordpress-service
+                name: wordpress-service   # Dein Service-Name
                 port:
-                  number: 80
+                  number: 80              # Port deines WP-Services
+  tls:
+    - hosts:
+        - wpf.drachenbyte.ddns-ip.net
+      secretName: tls-secret              # TLS-Secret im selben Namespace
+

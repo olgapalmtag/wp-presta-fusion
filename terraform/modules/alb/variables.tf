@@ -18,3 +18,12 @@ variable "acm_certificate_arn" {
   type        = string
 }
 
+variable "alb_sg_id" {
+  type        = string
+  description = "Security Group ID to attach to the ALB"
+}
+
+variable "healthcheck_path" {
+  type    = string
+  default = "/healthz"
+}
