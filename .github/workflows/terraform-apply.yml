@@ -76,10 +76,12 @@ jobs:
           echo "Warte 60 Sekunden, bis EC2 und RDS bereit sind..."
           sleep 120
 
-      - name: Save EC2 IP to file
+      - name: Save EC2 IP K3S IP
         id: get-ip
         run: |
           echo "EC2_IP=$(terraform output -raw ec2_instance_public_ip)" \
+          >> $GITHUB_ENV
+          echo "K3S_IP=$(terraform output -raw k3s_public_ip)" \
           >> $GITHUB_ENV
           echo "Connecting to EC2 IP: $EC2_IP"
 
@@ -134,13 +136,13 @@ jobs:
         run: |
           scp -o StrictHostKeyChecking=no -i key.pem \
           cert.pem tls.key \
-          "${{ secrets.DEV_USERNAME }}@${{ env.K3S_IP }}":/tmp/
+          "${{ secrets.DEV_USERNAME }}@$K3S_IP":/tmp/
 
       - name: Create TLS Secret in K3s via SSH
         run: |
           echo "Creating Kubernetes TLS Secret in K3s cluster..."
           ssh -o StrictHostKeyChecking=no -i key.pem \
-          "${{ secrets.DEV_USERNAME }}@${{ env.K3S_IP }}"  << 'EOF'
+          "${{ secrets.DEV_USERNAME }}@$K3S_IP"  << 'EOF'
             set -e
             sudo mkdir -p /etc/nginx/ssl
             sudo mv -v  /tmp/cert.pem /etc/nginx/ssl/
@@ -181,14 +183,14 @@ jobs:
           DB_PASS=${{ secrets.DEV_PASSWORD }}
           scp -o StrictHostKeyChecking=no -i key.pem -r \
           ../../../k8s/wordpress \
-          "${{ secrets.DEV_USERNAME }}@${{ env.K3S_IP }}"\
+          "${{ secrets.DEV_USERNAME }}@$K3S_IP"\
           :/home/ubuntu/
           scp -o StrictHostKeyChecking=no -i key.pem -r \
           ../../../k8s/prestashop \
-          "${{ secrets.DEV_USERNAME }}@${{ env.K3S_IP }}"\
+          "${{ secrets.DEV_USERNAME }}@$K3S_IP"\
           :/home/ubuntu/
           ssh -o StrictHostKeyChecking=no -i key.pem \
-          "${{ secrets.DEV_USERNAME }}@${{ env.K3S_IP }}" \
+          "${{ secrets.DEV_USERNAME }}@$K3S_IP" \
           << EOF
             set -e
             echo "Setzen der Umgebungsvariablen..."
@@ -245,9 +247,9 @@ jobs:
           echo "Uploading install-monitoring.sh to EC2 and executing it..."
           scp -o StrictHostKeyChecking=no -i key.pem \
           init_scripts/install-monitoring.sh \
-          "${{ secrets.DEV_USERNAME }}@${{ env.K3S_IP }}":/home/ubuntu/
+          "${{ secrets.DEV_USERNAME }}@$K3S_IP":/home/ubuntu/
           ssh -o StrictHostKeyChecking=no -i key.pem \
-          "${{ secrets.DEV_USERNAME }}@${{ env.K3S_IP }}" <<EOF
+          "${{ secrets.DEV_USERNAME }}@$K3S_IP" <<EOF
             chmod +x /home/ubuntu/install-monitoring.sh
             bash /home/ubuntu/install-monitoring.sh
           EOF
