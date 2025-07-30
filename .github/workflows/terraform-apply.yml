@@ -203,6 +203,15 @@ jobs:
             > /home/ubuntu/wordpress/mariadb-secret.yaml
             if command -v kubectl >/dev/null 2>&1; then
               echo "Kubectl apply wordpress"
+              kubectl -n kube-system delete deploy \
+              traefik --ignore-not-found
+              kubectl -n kube-system delete \
+              deploy,svc,cm,sa,role,rolebinding \
+              -l app.kubernetes.io/name=traefik --ignore-not-found
+              kubectl -n kube-system delete rs -l \
+              app.kubernetes.io/name=traefik --ignore-not-found
+              kubectl -n kube-system delete pod -l \
+              app.kubernetes.io/name=traefik --ignore-not-found
               kubectl apply -f /home/ubuntu/wordpress/mariadb-secret.yaml
               kubectl apply -f /home/ubuntu/wordpress/deployment.yaml
               kubectl apply -f /home/ubuntu/wordpress/service.yaml
@@ -211,6 +220,15 @@ jobs:
               kubectl apply -f /home/ubuntu/wordpress/ingress.yaml
             elif command -v k3s >/dev/null 2>&1; then
               echo "k3c Kubectl apply worpress"
+              k3s kubectl -n kube-system delete deploy \
+              traefik --ignore-not-found
+              k3s kubectl -n kube-system delete \
+              deploy,svc,cm,sa,role,rolebinding \
+              -l app.kubernetes.io/name=traefik --ignore-not-found
+              k3s kubectl -n kube-system delete rs -l
+              app.kubernetes.io/name=traefik --ignore-not-found
+              k3s kubectl -n kube-system delete pod -l \
+              app.kubernetes.io/name=traefik --ignore-not-found
               k3s kubectl apply -f /home/ubuntu/wordpress/mariadb-secret.yaml
               k3s kubectl apply -f /home/ubuntu/wordpress/deployment.yaml
               k3s kubectl apply -f /home/ubuntu/wordpress/service.yaml
