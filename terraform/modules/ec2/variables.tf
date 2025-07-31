@@ -78,7 +78,14 @@ variable "key_name" {
   description = "Name of the existing EC2 key pair for SSH access"
 }
 
-variable "user_data" {
+variable "k3s_user_data" {
+  description = "Cloud-init/UserData für die k3s-Instanz"
   type        = string
-  description = "Cloud-init script content"
+  default     = null
+}
+
+variable "cms_user_data" {
+  description = "Cloud-init/UserData für die CMS/NGINX-Instanz"
+  type        = string
+  default     = null
 }

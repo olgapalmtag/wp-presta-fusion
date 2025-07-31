@@ -45,7 +45,7 @@ resource "aws_instance" "cms" {
   vpc_security_group_ids = [aws_security_group.instance.id]
   key_name               = aws_key_pair.wp_key.key_name
 
-  user_data                   = var.user_data
+  user_data                   = var.cms_user_data
   user_data_replace_on_change = true
 
   tags = {
@@ -60,6 +60,9 @@ resource "aws_instance" "k3s" {
   subnet_id              = var.public_subnet_id
   vpc_security_group_ids = [aws_security_group.instance.id]
   key_name               = aws_key_pair.wp_key.key_name
+
+  user_data                   = var.k3s_user_data
+  user_data_replace_on_change = true
 
   tags = {
     Name = "${var.project}-k3s-instance"
