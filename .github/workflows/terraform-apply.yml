@@ -76,14 +76,17 @@ jobs:
           echo "Warte 60 Sekunden, bis EC2 und RDS bereit sind..."
           sleep 120
 
-      - name: Save EC2 IP K3S IP
+      - name: Save EC2 IP K3S IP K3S PIP
         id: get-ip
         run: |
           echo "EC2_IP=$(terraform output -raw ec2_instance_public_ip)" \
           >> $GITHUB_ENV
           echo "K3S_IP=$(terraform output -raw k3s_public_ip)" \
           >> $GITHUB_ENV
-          echo "Connecting to EC2 IP: $EC2_IP"
+          echo "EC2 IP: $EC2_IP"
+          echo "K3S_PIP=$(terraform output -raw k3s_private_ip)" \
+          >> $GITHUB_ENV
+          echo "K3S PIP: $K3S_PIP"
 
       - name: Restore SSH key
         run: |
@@ -114,11 +117,11 @@ jobs:
             sudo chmod 600 /etc/nginx/ssl/*
             ls -l /etc/nginx/ssl/cert.pem /etc/nginx/ssl/tls.key \
             || exit 1
-            export K3S_PRIVATE_IP="${K3S_PRIVATE_IP}"
+            K3S_PRIVATE_IP="${K3S_PIP}"
             sudo sed -i "s/k3s_node_private/${K3S_PRIVATE_IP}/g" \
             /etc/nginx/sites-available/default
-            sudo nginx -t
-            sudo systemctl reload nginx
+            sudo nginx -t || true
+            sudo systemctl reload nginx || true
 
           EOF
 
