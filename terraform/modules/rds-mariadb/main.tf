@@ -7,6 +7,26 @@ resource "aws_db_subnet_group" "mariadb_subnet_group" {
   }
 }
 
+resource "aws_security_group" "rds_sg" {
+  name   = "rds-mariadb-sg"
+  vpc_id = var.vpc_id
+
+  ingress {
+    description     = "MySQL from K3s"
+    from_port       = 3306
+    to_port         = 3306
+    protocol        = "tcp"
+    security_groups = [var.k3c_sg_id]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
 resource "aws_db_instance" "mariadb" {
   identifier        = "${var.project}-mariadb"
   allocated_storage = 20
@@ -20,7 +40,7 @@ resource "aws_db_instance" "mariadb" {
   db_name  = var.db_name
   port     = 3306
 
-  vpc_security_group_ids = [var.security_group_id]
+  vpc_security_group_ids = [war_security_group.rds_sg.id]
   db_subnet_group_name   = aws_db_subnet_group.mariadb_subnet_group.name
 
   backup_retention_period = 7

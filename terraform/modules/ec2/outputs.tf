@@ -23,3 +23,8 @@ output "k3s_private_ip" {
   description = "Private IP of the K3s EC2 instance"
   value       = aws_instance.k3s.private_ip
 }
+
+output "sg_id" {
+  value       = aws_security_group.k3c_sg.id
+  description = "K3s Instance Security Group ID"
+}

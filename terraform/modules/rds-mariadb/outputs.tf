@@ -21,3 +21,7 @@ output "db_password" {
   value       = aws_db_instance.mariadb.password
 }
 
+output "rds_sg_id" {
+  description = "Security Group ID der RDS-Instanz"
+  value       = aws_security_group.rds_sg.id
+}

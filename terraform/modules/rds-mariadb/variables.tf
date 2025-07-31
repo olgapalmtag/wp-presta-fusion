@@ -35,3 +35,8 @@ variable "port" {
   default     = 3306
 }
 
+variable "k3c_sg_id" {
+  type        = string
+  description = "Security Group ID der K3s-Instanz"
+}
+
