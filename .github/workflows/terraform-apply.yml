@@ -201,6 +201,8 @@ jobs:
             echo "WordPress wird deployed..."
             envsubst < /home/ubuntu/wordpress/mariadb-secret.yaml.template \
             > /home/ubuntu/wordpress/mariadb-secret.yaml
+            sudo chmod 644 /etc/rancher/k3s/k3s.yaml
+            export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
             if command -v kubectl >/dev/null 2>&1; then
               echo "Kubectl apply wordpress"
               kubectl -n kube-system delete deploy \

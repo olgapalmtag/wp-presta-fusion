@@ -7,20 +7,16 @@ curl -sfL https://get.k3s.io | sh -s - --write-kubeconfig-mode 644
 # Warte kurz bis K3s ready ist
 sleep 30
 
-# Entwickler-Benutzer für passwortloses sudo
-echo "developer ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/developer
-chmod 440 /etc/sudoers.d/developer
-
 # Intall nginx
 sudo apt update
 sudo apt install -y nginx
 sudo systemctl enable nginx
 sudo systemctl start nginx
 
-cat <<EOF > /etc/nginx/sites-available/default
+sudo tee /etc/nginx/sites-available/default >/dev/null <<'EOF'
 server {
   listen 80 default_server;
-  return 301 https://\$host\$request_uri;
+  return 301 https://$host$request_uri;
 }
 
 server {
@@ -35,13 +31,11 @@ server {
 
   location / {
     proxy_pass https://k3s_node_private:32443;
-    proxy_set_header Host \$host;
-    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto https;
     proxy_ssl_server_name on;
     proxy_ssl_verify off;
   }
 }
 EOF
-
-sudo nginx -t && sudo systemctl reload nginx
