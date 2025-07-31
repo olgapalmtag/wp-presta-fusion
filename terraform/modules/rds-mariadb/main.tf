@@ -40,7 +40,7 @@ resource "aws_db_instance" "mariadb" {
   db_name  = var.db_name
   port     = 3306
 
-  vpc_security_group_ids = [war_security_group.rds_sg.id]
+  vpc_security_group_ids = [aws_security_group.rds_sg.id]
   db_subnet_group_name   = aws_db_subnet_group.mariadb_subnet_group.name
 
   backup_retention_period = 7

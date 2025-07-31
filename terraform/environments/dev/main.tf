@@ -86,7 +86,7 @@ module "alb" {
 
 resource "aws_lb_target_group_attachment" "nginx" {
   target_group_arn = module.alb.target_group_arn
-  target_id        = var.nginx_instance_id
+  target_id        = module.ec2.ec2_instance_id
   port             = 443
 }
 
@@ -100,7 +100,8 @@ module "mariadb" {
   db_name           = "cmsdb"
   db_username       = var.db_username
   db_password       = var.db_password
-  k3c_sg_id         = module.k3s.sg_id
+  k3c_sg_id         = module.ec2.sg_id
+  vpc_id            = module.vpc.vpc_id
 }
 
 module "s3_backup" {

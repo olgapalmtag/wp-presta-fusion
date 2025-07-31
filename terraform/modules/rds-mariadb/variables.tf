@@ -40,3 +40,7 @@ variable "k3c_sg_id" {
   description = "Security Group ID der K3s-Instanz"
 }
 
+variable "vpc_id" {
+  type        = string
+  description = "VPC ID, in der die RDS-SG und die DB liegen"
+}
