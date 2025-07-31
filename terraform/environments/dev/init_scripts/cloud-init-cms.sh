@@ -33,7 +33,7 @@ server {
   }
 
   location /grafana/ {
-      proxy_pass http://ip:node/;
+      proxy_pass https://127.0.0.1:traefik_nodeport/;
       proxy_http_version 1.1;
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP $remote_addr;

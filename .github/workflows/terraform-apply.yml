@@ -192,10 +192,17 @@ jobs:
           ../../../k8s/prestashop \
           "${{ secrets.DEV_USERNAME }}@$K3S_IP"\
           :/home/ubuntu/
+          echo "Uploading install-monitoring.sh to EC2 and executing it..."
+          scp -o StrictHostKeyChecking=no -i key.pem \
+          init_scripts/install-monitoring.sh \
+          "${{ secrets.DEV_USERNAME }}@$K3S_IP":/home/ubuntu/
           ssh -o StrictHostKeyChecking=no -i key.pem \
           "${{ secrets.DEV_USERNAME }}@$K3S_IP" \
           << EOF
             set -e
+            echo "Install monitoring"
+            chmod +x /home/ubuntu/install-monitoring.sh
+            bash /home/ubuntu/install-monitoring.sh
             echo "Setzen der Umgebungsvariablen..."
             export DB_ENDPOINT="${DB_ENDPOINT}"
             export DB_NAME="${DB_NAME}"
@@ -223,6 +230,7 @@ jobs:
               kubectl apply -f \
               /home/ubuntu/wordpress/traefik-service-nodeport.yaml
               kubectl apply -f /home/ubuntu/wordpress/ingress.yaml
+              kubectl apply -f /home/ubuntu/wordpress/grafana_ingress.yaml
             elif command -v k3s >/dev/null 2>&1; then
               echo "k3c Kubectl apply worpress"
               k3s kubectl -n kube-system delete deploy \
@@ -240,6 +248,7 @@ jobs:
               k3s kubectl apply -f \
               /home/ubuntu/wordpress/traefik-service-nodeport.yaml
               k3s kubectl apply -f /home/ubuntu/wordpress/ingress.yaml
+              k3s kubectl apply -f /home/ubuntu/wordpress/grafana_ingress.yaml
             else
               echo "Kein kubectl oder k3s gefunden – Abbruch."
               exit 1
@@ -275,4 +284,5 @@ jobs:
           "${{ secrets.DEV_USERNAME }}@$K3S_IP" <<EOF
             chmod +x /home/ubuntu/install-monitoring.sh
             bash /home/ubuntu/install-monitoring.sh
+
           EOF
