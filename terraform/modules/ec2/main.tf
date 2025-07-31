@@ -45,18 +45,8 @@ resource "aws_instance" "cms" {
   vpc_security_group_ids = [aws_security_group.instance.id]
   key_name               = aws_key_pair.wp_key.key_name
 
-  user_data = templatefile("${path.module}/cloud-init.sh", {
-    end_user_username   = var.end_user_username
-    end_user_password   = var.end_user_password
-    developer_username  = var.developer_username
-    developer_password  = var.developer_password
-    ops_username        = var.ops_username
-    ops_password        = var.ops_password
-    sre_username        = var.sre_username
-    sre_password        = var.sre_password
-    instructor_username = var.instructor_username
-    instructor_password = var.instructor_password
-  })
+  user_data                   = var.user_data
+  user_data_replace_on_change = true
 
   tags = {
     Name = "${var.project}-cms-instance"
@@ -70,8 +60,6 @@ resource "aws_instance" "k3s" {
   subnet_id              = var.public_subnet_id
   vpc_security_group_ids = [aws_security_group.instance.id]
   key_name               = aws_key_pair.wp_key.key_name
-
-  user_data = file("init_scripts/cloud-init-k3s.sh")
 
   tags = {
     Name = "${var.project}-k3s-instance"

@@ -77,3 +77,8 @@ variable "key_name" {
   type        = string
   description = "Name of the existing EC2 key pair for SSH access"
 }
+
+variable "user_data" {
+  type        = string
+  description = "Cloud-init script content"
+}

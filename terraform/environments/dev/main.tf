@@ -55,6 +55,7 @@ resource "aws_security_group" "alb" {
 # EC2 Modul
 module "ec2" {
   source                = "../../modules/ec2"
+  user_data             = file("${path.module}/init_scripts/cloud-init-k3s.sh")
   project               = "wp-presta-fusion"
   vpc_id                = module.vpc.vpc_id
   alb_security_group_id = aws_security_group.alb.id
