@@ -19,11 +19,11 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: wordpress-service   # Dein Service-Name
+                name: wordpress-service
                 port:
-                  number: 80              # Port deines WP-Services
+                  number: 80              
   tls:
     - hosts:
         - wpf.drachenbyte.ddns-ip.net
-      secretName: tls-secret              # TLS-Secret im selben Namespace
+      secretName: wpf-secret              
 

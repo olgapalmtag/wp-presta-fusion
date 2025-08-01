@@ -8,13 +8,18 @@ sudo systemctl enable nginx
 sudo systemctl start nginx
 
 sudo tee /etc/nginx/sites-available/default >/dev/null <<'EOF'
+# Redirect HTTP to HTTPS
 server {
   listen 80 default_server;
+  server_name _;
   return 301 https://$host$request_uri;
 }
 
+# ---------- WordPress ----------
 server {
-  listen 443 ssl default_server;
+  listen 443 ssl;
+  server_name wpf.drachenbyte.ddns-ip.net;
+
   ssl_certificate     /etc/nginx/ssl/cert.pem;
   ssl_certificate_key /etc/nginx/ssl/tls.key;
 
@@ -24,26 +29,31 @@ server {
   }
 
   location / {
-    proxy_pass https://k3s_node_private:32443;
+    proxy_pass https://k3s_private_ip:32443/;
     proxy_set_header Host $host;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto https;
-    proxy_ssl_server_name on;
+    proxy_set_header X-Forwarded-Proto $scheme;
     proxy_ssl_verify off;
-  }
-
-  location /grafana/ {
-      proxy_pass https://127.0.0.1:traefik_nodeport/;
-      proxy_http_version 1.1;
-      proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
-      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-      proxy_set_header X-Forwarded-Proto $scheme;
-      proxy_set_header X-Forwarded-Host $host;
-      proxy_set_header X-Forwarded-Prefix /grafana;
-      proxy_set_header Upgrade $http_upgrade;
-      proxy_set_header Connection "upgrade";
-      proxy_read_timeout 180;
+    proxy_ssl_server_name on;
   }
 }
+
+# ---------- Grafana ----------
+server {
+  listen 443 ssl;
+  server_name grafana.drachenbyte.ddns-ip.net;
+
+  ssl_certificate     /etc/nginx/ssl/cert.pem;
+  ssl_certificate_key /etc/nginx/ssl/tls.key;
+
+  location / {
+    proxy_pass https://k3s_private_ip:32443/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_ssl_verify off;
+    proxy_ssl_server_name on;
+  }
+}
+
 EOF

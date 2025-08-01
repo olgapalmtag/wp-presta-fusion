@@ -5,20 +5,25 @@ metadata:
   namespace: monitoring
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    kubernetes.io/ingress.class: traefik
 spec:
   ingressClassName: traefik
   tls:
   - hosts:
-    - drachenbyte.ddns-ip.net
+    - grafana.drachenbyte.ddns-ip.net
   rules:
-  - host: drachenbyte.ddns-ip.net
+  - host: grafana.drachenbyte.ddns-ip.net
     http:
       paths:
-      - path: /grafana
+      - path: /
         pathType: Prefix
         backend:
           service:
             name: monitoring-grafana
             port:
               number: 80
-
+  tls:
+    - hosts:
+      - grafana.drachenbyte.ddns-ip.net
+      secretName: gr-secret
