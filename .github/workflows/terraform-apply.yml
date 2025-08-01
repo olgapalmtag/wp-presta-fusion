@@ -204,8 +204,6 @@ jobs:
             chmod +x /home/ubuntu/install-monitoring.sh
             bash /home/ubuntu/install-monitoring.sh
             echo "Set Environment variables..."
-            GF_SERVER_ROOT_URL=%(protocol)s://%(domain)s/
-            GF_SERVER_SERVE_FROM_SUB_PATH=false
             export DB_ENDPOINT="${DB_ENDPOINT}"
             export DB_NAME="${DB_NAME}"
             export DB_USER="${DB_USER}"
