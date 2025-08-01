@@ -166,9 +166,6 @@ jobs:
               k3c create secret tls wpf-tls \
               --cert=/etc/nginx/ssl/cert.pem \
               --key=/etc/nginx/ssl/tls.key
-              k3s kubectl -n monitoring create secret tls gr-secret \
-              --cert=/etc/nginx/ssl/cert.pem \
-              --key=/etc/nginx/ssl/tls.key
             else
               echo "Neither kubectl nor k3s found – aborting."
               exit 1
@@ -222,6 +219,10 @@ jobs:
             sudo chmod 644 /etc/rancher/k3s/k3s.yaml
             export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
             if command -v kubectl >/dev/null 2>&1; then
+              echo "Create monitoring secrets"
+              kubectl -n monitoring create secret tls gr-secret \
+              --cert=/etc/nginx/ssl/cert.pem \
+              --key=/etc/nginx/ssl/tls.key
               echo "Kubectl apply wordpress"
               kubectl -n kube-system delete deploy \
               traefik --ignore-not-found
@@ -240,6 +241,10 @@ jobs:
               kubectl apply -f /home/ubuntu/wordpress/ingress.yaml
               kubectl apply -f /home/ubuntu/wordpress/grafana_ingress.yaml
             elif command -v k3s >/dev/null 2>&1; then
+              echo "Create monitoring secrets"
+              k3s kubectl -n monitoring create secret tls gr-secret \
+            --cert=/etc/nginx/ssl/cert.pem \
+            --key=/etc/nginx/ssl/tls.key
               echo "k3c Kubectl apply worpress"
               k3s kubectl -n kube-system delete deploy \
               traefik --ignore-not-found
