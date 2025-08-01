@@ -158,9 +158,6 @@ jobs:
               kubectl create secret tls wpf-tls \
               --cert=/etc/nginx/ssl/cert.pem \
               --key=/etc/nginx/ssl/tls.key
-              kubectl -n monitoring create secret tls gr-secret \
-              --cert=/etc/nginx/ssl/cert.pem \
-              --key=/etc/nginx/ssl/tls.key
             elif command -v k3s >/dev/null 2>&1; then
               k3s delete secret wpf-tls --ignore-not-found || true
               k3c create secret tls wpf-tls \
@@ -243,8 +240,8 @@ jobs:
             elif command -v k3s >/dev/null 2>&1; then
               echo "Create monitoring secrets"
               k3s kubectl -n monitoring create secret tls gr-secret \
-            --cert=/etc/nginx/ssl/cert.pem \
-            --key=/etc/nginx/ssl/tls.key
+              --cert=/etc/nginx/ssl/cert.pem \
+              --key=/etc/nginx/ssl/tls.key
               echo "k3c Kubectl apply worpress"
               k3s kubectl -n kube-system delete deploy \
               traefik --ignore-not-found
