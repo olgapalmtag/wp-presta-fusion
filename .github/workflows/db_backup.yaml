@@ -11,13 +11,13 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      K3C_HOST_IP: ${{ secrets.K3S_HOST_IP }}
+      K3C_HOST_IP: ${{ secrets.K3S_IP }}
       SSH_USER: ubuntu
 
     defaults:
       run:
-      shell: bash
-      working-directory: ./terraform/environments/dev
+       shell: bash
+       working-directory: ./terraform/environments/dev
 
     steps:
       - name: Checkout code
@@ -32,7 +32,7 @@ jobs:
         run: |
           scp -o StrictHostKeyChecking=no -i key.pem \
           init_scripts/db_backup.sh \
-          "${{ secrets.DEV_USERNAME }}@$K3S_IP":/home/ubuntu/
+          "${{ secrets.DEV_USERNAME }}@$K3S_HOST_IP":/home/ubuntu/
 
       - name: Run db_backup.sh on K3s node
         run: |
