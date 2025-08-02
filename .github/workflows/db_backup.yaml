@@ -1,0 +1,47 @@
+name: DB Backup to S3 via K3s Host
+
+on:
+  workflow_dispatch:
+
+jobs:
+  db-backup:
+    name: Run db_backup.sh on K3s node
+    runs-on: ubuntu-latest
+
+    env:
+      K3C_HOST_IP: ${{ secrets.K3S_HOST_IP }}
+      SSH_USER: ubuntu
+
+    defaults:
+      run:
+      shell: bash
+      working-directory: ./terraform/environments/dev
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Restore SSH key
+        run: |
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > key.pem
+          chmod 600 key.pem
+
+      - name: Copy script
+        run: |
+          scp -o StrictHostKeyChecking=no -i key.pem \
+          init_scripts/db_backup.sh \
+          "${{ secrets.DEV_USERNAME }}@$K3S_IP":/home/ubuntu/
+
+      - name: Run db_backup.sh on K3s node
+        run: |
+          ssh -i key.pem -o StrictHostKeyChecking=no \
+          $SSH_USER@$K3S_HOST_IP  << 'EOF'
+            echo "Connecting to K3s host..."
+            chmod a+x /home/ubuntu/db_backup.sh
+            if [ ! -x /home/ubuntu/db_backup.sh ]; then
+              echo "db_backup.sh not found or not executable"
+              exit 1
+            fi
+            echo " Running db_backup.sh..."
+            /home/ubuntu/db_backup.sh
+          EOF
