@@ -27,6 +27,9 @@ jobs:
         run: |
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > key.pem
           chmod 600 key.pem
+          
+          echo "K3C_HOST_IP= ${{ secrets.K3S_IP }}" \
+          >> $GITHUB_ENV
 
       - name: Copy script
         run: |
